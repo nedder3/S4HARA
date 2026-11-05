@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --sap-brand: #0a6ed1;
+    --sap-brand-hover: #0854a0;
+    --sap-shell-bg: #1b2a4a;
+    --sap-shell-text: #ffffff;
+    --sap-bg: #f5f6f8;
+    --sap-card-bg: #ffffff;
+    --sap-border: #d9e1e8;
+    --sap-border-light: #edf2f7;
+    --sap-text: #1d2d3e;
+    --sap-text-muted: #5b738b;
+    --sap-success: #107e3e;
+    --sap-success-bg: #eaf7ee;
+    --sap-warning: #e9730c;
+    --sap-warning-bg: #fef3e6;
+    --sap-error: #bb0000;
+    --sap-error-bg: #fde8e8;
+    --sap-tile-hover: #f0f4f9;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--sap-bg);
+    color: var(--sap-text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Tabular numbers for business codes, dates, quantities */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Custom scrollbar matching SAP Fiori */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f3f5;
+}
+::-webkit-scrollbar-thumb {
+  background: #c5ced7;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a6b4c3;
+}
