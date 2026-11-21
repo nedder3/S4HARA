@@ -43,11 +43,11 @@ export const MIGOGoodsMovement: React.FC = () => {
   const [transferFromLoc, setTransferFromLoc] = useState<string>('0001');
   const [transferToLoc, setTransferToLoc] = useState<string>('0002');
 
-  // Block (344) State — Preloaded for TecnoSur Flood Case (17 u. MAT-A100)
+  // Block (344) State
   const [blockMaterialId, setBlockMaterialId] = useState<string>('MAT-A100');
   const [blockBatch, setBlockBatch] = useState<string>('LOT-TS-A1');
   const [blockQty, setBlockQty] = useState<number>(17);
-  const [blockReason, setBlockReason] = useState<string>('Inundación Centro 1010 — Bloqueo preventivo auditoría TecnoSur');
+  const [blockReason, setBlockReason] = useState<string>('Bloqueo preventivo por inspección de calidad / daño físico');
 
   // Return Inspection (651) State
   const [recoveredInput, setRecoveredInput] = useState<number>(2);
@@ -401,12 +401,12 @@ export const MIGOGoodsMovement: React.FC = () => {
               Traspaso de Libre Utilización a Stock Bloqueado (Contingencias / Siniestros)
             </h3>
             <span className="px-2 py-0.5 bg-[#fde8e8] text-[#bb0000] rounded text-xs font-mono font-bold border border-[#f5c2c2]">
-              Mov. 344 · Caso TecnoSur
+              Mov. 344 · Traspaso a Bloqueado
             </span>
           </div>
 
           <div className="p-3.5 rounded-lg bg-[#fef3e6] border border-[#f5cfa3] text-xs text-[#7a3c04]">
-            <strong>Protocolo Operativo TecnoSur:</strong> Ante inundación o daño en depósito, bloquea preventivamente las unidades afectadas (ej. 17 u. de MAT-A100, 14 u. de MAT-B200 o 39 u. de MAT-C300) con Mov. 344 para impedir que sean comprometidas con pedidos de clientes hasta nueva inspección ($1.250/u.).
+            <strong>Control de Inventario (Mov. 344):</strong> Transfiere stock desde Libre Utilización a Stock Bloqueado dentro del mismo almacén, impidiendo que Ventas o Picking comprometan mercadería dañada o en revisión técnica.
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -492,7 +492,7 @@ export const MIGOGoodsMovement: React.FC = () => {
             </div>
 
             <div className="p-3.5 rounded-lg bg-[#fde8e8]/70 border border-[#f5c2c2] text-xs text-[#7f1d1d]">
-              <strong>Regla de Oro (UTN Procesos Logísticos IV):</strong> Una devolución de cliente <strong>nunca</strong> debe reincorporarse automáticamente al stock disponible (Libre Utilización). Primero ingresa a Stock Bloqueado de Devoluciones (Mov. 651), se inspecciona físicamente y luego se define qué unidades se recuperan/reacondicionan y cuáles van a reparación o disposición final.
+              <strong>Estándar SAP Logística Inversa (Mov. 651):</strong> Una devolución de cliente <strong>nunca</strong> se reincorpora automáticamente al stock disponible (Libre Utilización). Primero ingresa a Stock Bloqueado de Devoluciones (Almacén 0004), se inspecciona físicamente y luego se clasifica qué unidades se recuperan y cuáles van a reparación o disposición final.
             </div>
 
             <div className="space-y-3">

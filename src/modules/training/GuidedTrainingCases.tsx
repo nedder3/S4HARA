@@ -23,13 +23,13 @@ export const GuidedTrainingCases: React.FC = () => {
         <div className="max-w-3xl space-y-2">
           <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-[#f0f4f9] text-[#0a6ed1] text-xs font-mono font-semibold border border-[#c2dcf7]">
             <Award className="w-3.5 h-3.5" />
-            <span>Misiones UTN FRBB → SAP S/4HANA</span>
+            <span>Capa de Práctica Desacoplada</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1d2d3e]">
-            Casos Integradores de Logística sobre SAP S/4HANA
+            Escenarios Prácticos de Operación en SAP S/4HANA
           </h1>
           <p className="text-sm text-[#5b738b] leading-relaxed">
-            Resuelve escenarios inspirados en tus materias de la Licenciatura en Logística (*TecnoSur Equipamientos, Metalúrgica del Sur, MRP y ABC*) ejecutando transacciones reales de SAP y preparándote para preguntas de entrevista técnica.
+            Ejercita circuitos logísticos reales end-to-end (contingencias de inventario, devoluciones, MRP y segmentación ABC) sobre los módulos estándar de SAP con consejos para entrevistas laborales.
           </p>
         </div>
 

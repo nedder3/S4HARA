@@ -159,7 +159,7 @@ export const CMIOverviewDashboard: React.FC = () => {
       <div className="bg-white rounded-xl p-5 border border-[#d9e1e8] shadow-xs space-y-3">
         <h3 className="text-xs font-bold text-[#1d2d3e] uppercase tracking-wider flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-[#0a6ed1]" />
-          Lectura Gerencial — Matriz de Decisiones Correctivas (Gerenciamiento y Control de Gestión)
+          Lectura Gerencial — Matriz de Acciones Correctivas (SAP Logistics Analytics)
         </h3>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">

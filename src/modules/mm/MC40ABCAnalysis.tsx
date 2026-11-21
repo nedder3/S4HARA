@@ -37,7 +37,7 @@ export const MC40ABCAnalysis: React.FC = () => {
               </span>
             </div>
             <p className="text-xs text-[#5b738b]">
-              Metodología ABC (UTN Gestión de Abastecimiento I — TP2) comparando los 3 criterios de clasificación
+              Clasificación de inventarios ABC (Ley de Pareto 80/20) comparando los 3 criterios estándar de segmentación
             </p>
           </div>
         </div>

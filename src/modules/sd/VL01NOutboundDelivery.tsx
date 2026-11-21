@@ -84,32 +84,18 @@ export const VL01NOutboundDelivery: React.FC = () => {
               </span>
             </div>
             <p className="text-xs text-[#5b738b]">
-              Gestión de entregas salientes, controles de carga (UTN PL-IV) y programación de capacidad de muelles
+              Gestión de entregas salientes, verificación de 5 controles de carga y Contabilización de Salida de Mercancías (PGI — Mov. 601)
             </p>
           </div>
         </div>
 
-        {/* Sub-tab Switcher */}
-        <div className="flex items-center gap-1.5 p-1 bg-[#f5f6f7] rounded-lg border border-[#d9e1e8]">
+        {/* Cross-Module Link to EWM Dock Scheduling */}
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => setActiveSubTab('EXPEDITION')}
-            className={`px-3.5 py-1.5 rounded-md text-xs font-semibold transition-all ${
-              activeSubTab === 'EXPEDITION'
-                ? 'bg-white text-[#0a6ed1] shadow-xs border border-[#d9e1e8]'
-                : 'text-[#5b738b] hover:text-[#1d2d3e]'
-            }`}
+            onClick={() => setActiveApp('EWM_DOCK')}
+            className="px-3.5 py-2 rounded-lg bg-[#f0f4f9] hover:bg-[#e1ecf8] text-[#0a6ed1] border border-[#c2dcf7] text-xs font-semibold transition-colors"
           >
-            Entregas Salientes & PGI (VL02N)
-          </button>
-          <button
-            onClick={handleOpenDocks}
-            className={`px-3.5 py-1.5 rounded-md text-xs font-semibold transition-all ${
-              activeSubTab === 'DOCKS'
-                ? 'bg-white text-[#0a6ed1] shadow-xs border border-[#d9e1e8]'
-                : 'text-[#5b738b] hover:text-[#1d2d3e]'
-            }`}
-          >
-            Dimensionamiento de Muelles (EWM)
+            Ir a Muelles (EWM Dock)
           </button>
         </div>
       </div>

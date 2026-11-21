@@ -199,7 +199,7 @@ export const MD04MRPMonitor: React.FC = () => {
               <Calculator className="w-4 h-4 text-[#0a6ed1]" />
               Evaluación de Costos del Plan
             </h3>
-            <span className="text-[10px] font-mono text-[#5b738b]">TP3 UTN</span>
+            <span className="text-[10px] font-mono text-[#5b738b]">SAP PP Costing</span>
           </div>
 
           <div className="space-y-2 text-xs">

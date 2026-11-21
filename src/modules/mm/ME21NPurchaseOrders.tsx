@@ -93,14 +93,14 @@ export const ME21NPurchaseOrders: React.FC = () => {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <label className="block text-[11px] font-semibold text-[#5b738b] uppercase mb-1">Proveedor (TecnoSur)</label>
+              <label className="block text-[11px] font-semibold text-[#5b738b] uppercase mb-1">Proveedor Aprobado</label>
               <select
                 value={vendorPreset}
                 onChange={e => setVendorPreset(e.target.value as 'P2' | 'P3')}
                 className="w-full text-xs p-2.5 rounded-lg border border-[#d9e1e8] bg-[#f5f6f7] font-mono"
               >
-                <option value="P3">P3 Emergencia (30h · 82% conf · +65%)</option>
-                <option value="P2">P2 Parcial (72h · 68% conf · +32%)</option>
+                <option value="P3">Distribuidora Express Industrial (30h · 94% conf.)</option>
+                <option value="P2">Suministros Industriales del Sur (72h · 88% conf.)</option>
               </select>
             </div>
             <div>
