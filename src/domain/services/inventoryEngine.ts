@@ -115,7 +115,7 @@ export function executeGoodsReceiptPO(
     movementType: '101',
     movementDescription: 'Entrada de mercancías para pedido en almacén (101)',
     headerText: `Recepción OC ${po.id} — ${po.vendorName}`,
-    createdBy: 'FRANCO_LOG_UTN',
+    createdBy: 'SAP_LOG_USER',
     items: itemsToReceive.map((it, idx) => ({
       itemNumber: (idx + 1) * 10,
       materialId: it.materialId,
@@ -207,7 +207,7 @@ export function executeStockTransfer(
     movementType: '311',
     movementDescription: 'Traslado de almacén a almacén en 1 paso (311)',
     headerText: `Traspaso interno ${fromLoc} -> ${toLoc}`,
-    createdBy: 'FRANCO_LOG_UTN',
+    createdBy: 'SAP_LOG_USER',
     items: [
       {
         itemNumber: 10,
@@ -274,7 +274,7 @@ export function executeBlockStock(
     movementType: '344',
     movementDescription: 'Traspaso Libre Utilización a Stock Bloqueado (344)',
     headerText: reason || 'Bloqueo preventivo por contingencia en depósito',
-    createdBy: 'FRANCO_LOG_UTN',
+    createdBy: 'SAP_LOG_USER',
     items: [
       {
         itemNumber: 10,
@@ -346,7 +346,7 @@ export function executeCustomerReturn(
     movementType: '651',
     movementDescription: 'Devolución de cliente a Stock Bloqueado de Devoluciones (651)',
     headerText: `Logística Inversa ${ret.id} — ${ret.customerName}`,
-    createdBy: 'FRANCO_LOG_UTN',
+    createdBy: 'SAP_LOG_USER',
     items: [
       {
         itemNumber: 10,
@@ -486,7 +486,7 @@ export function executeGoodsIssue(
     movementType: '601',
     movementDescription: 'Salida de mercancías para entrega a cliente (PGI 601)',
     headerText: `Despacho Entrega ${deliveryId} — Ruta ${obd.routeKm} km (${obd.transportMode})`,
-    createdBy: 'FRANCO_LOG_UTN',
+    createdBy: 'SAP_LOG_USER',
     items: obd.items.map(it => ({
       itemNumber: it.itemNumber,
       materialId: it.materialId,

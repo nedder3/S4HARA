@@ -52,6 +52,7 @@ export interface ToastMessage {
 
 export type AppView =
   | 'LAUNCHPAD'
+  | 'ACADEMY'
   | 'MMBE'
   | 'MIGO'
   | 'ME21N'
@@ -60,6 +61,7 @@ export type AppView =
   | 'MC40'
   | 'CMI'
   | 'EWM_RACK'
+  | 'EWM_DOCK'
   | 'CASES';
 
 interface SAPContextType {
@@ -140,7 +142,7 @@ interface SAPContextType {
   resetToDefaultData: () => void;
 }
 
-const defaultRepository: IStateRepository = new LocalStorageRepository('S4HARA_SAP_UTN_V2');
+const defaultRepository: IStateRepository = new LocalStorageRepository('S4HARA_SAP_V3');
 
 const SAPContext = createContext<SAPContextType | undefined>(undefined);
 
@@ -229,6 +231,9 @@ export const SAPProvider: React.FC<SAPProviderProps> = ({ children, repository =
   const executeTCode = (cmd: string): boolean => {
     const normalized = cmd.trim().toUpperCase().replace(/^\/N/, '');
     const tcodeRoutes: Record<string, { app: AppView; label: string }> = {
+      ACADEMY: { app: 'ACADEMY', label: 'Academia SAP S/4HANA (Fundamentos)' },
+      ACADEMIA: { app: 'ACADEMY', label: 'Academia SAP S/4HANA (Fundamentos)' },
+      LECCIONES: { app: 'ACADEMY', label: 'Academia SAP S/4HANA (Fundamentos)' },
       MMBE: { app: 'MMBE', label: 'Resumen de Stock (MMBE)' },
       STOCK: { app: 'MMBE', label: 'Resumen de Stock (MMBE)' },
       MIGO: { app: 'MIGO', label: 'Movimientos de Mercancías (MIGO)' },
@@ -236,9 +241,10 @@ export const SAPProvider: React.FC<SAPProviderProps> = ({ children, repository =
       '651': { app: 'MIGO', label: 'Logística Inversa (MIGO 651)' },
       ME21N: { app: 'ME21N', label: 'Pedidos de Compra (ME21N)' },
       ME23N: { app: 'ME21N', label: 'Pedidos de Compra (ME23N)' },
-      VL01N: { app: 'VL01N', label: 'Expedición y Muelles (VL02N)' },
-      VL02N: { app: 'VL01N', label: 'Expedición y Muelles (VL02N)' },
-      MUELLES: { app: 'VL01N', label: 'Dimensionamiento de Muelles (EWM)' },
+      VL01N: { app: 'VL01N', label: 'Entregas Salientes & PGI (VL02N)' },
+      VL02N: { app: 'VL01N', label: 'Entregas Salientes & PGI (VL02N)' },
+      MUELLES: { app: 'EWM_DOCK', label: 'Programación y Capacidad de Muelles (EWM)' },
+      DOCK: { app: 'EWM_DOCK', label: 'Programación y Capacidad de Muelles (EWM)' },
       MD04: { app: 'MD04', label: 'Monitor MRP & BOM (MD04 / CS03)' },
       CS03: { app: 'MD04', label: 'Lista de Materiales (CS03)' },
       MRP: { app: 'MD04', label: 'Monitor MRP (MD04)' },
@@ -246,9 +252,8 @@ export const SAPProvider: React.FC<SAPProviderProps> = ({ children, repository =
       ABC: { app: 'MC40', label: 'Análisis ABC / Pareto (MC40)' },
       CMI: { app: 'CMI', label: 'Tablero Analítico CMI / OTIF' },
       OTIF: { app: 'CMI', label: 'Tablero Analítico CMI / OTIF' },
-      EWM: { app: 'EWM_RACK', label: 'Mapa de Almacén & Racks (EWM)' },
-      CASOS: { app: 'CASES', label: 'Misiones Prácticas UTN-to-SAP' },
-      TECNOSUR: { app: 'CASES', label: 'Misiones Prácticas UTN-to-SAP' },
+      EWM: { app: 'EWM_RACK', label: 'Mapa de Almacén & Ubicaciones (EWM)' },
+      CASOS: { app: 'CASES', label: 'Escenarios Prácticos Guiados' },
       HOME: { app: 'LAUNCHPAD', label: 'Fiori Launchpad' }
     };
 
@@ -407,7 +412,7 @@ export const SAPProvider: React.FC<SAPProviderProps> = ({ children, repository =
     setCaseStudies(INITIAL_CASE_STUDIES);
     setActiveCaseStudyId(null);
     ['STOCKS', 'PO', 'OBD', 'RET', 'BINS', 'DOCS', 'KPI', 'CASES'].forEach(k => repository.remove(k));
-    addToast('info', 'Datos Restablecidos', 'Escenarios UTN (TecnoSur, Metalúrgica del Sur, MRP y ABC) reiniciados al estado inicial.');
+    addToast('info', 'Datos Restablecidos', 'Inventario, documentos y escenarios reiniciados al estado inicial de fábrica.');
   };
 
   return (
