@@ -8,6 +8,9 @@ import { MMBEStockOverview } from './components/apps/MMBEStockOverview';
 import { MIGOGoodsMovement } from './components/apps/MIGOGoodsMovement';
 import { ME21NPurchaseOrders } from './components/apps/ME21NPurchaseOrders';
 import { VL01NOutboundDelivery } from './components/apps/VL01NOutboundDelivery';
+import { MD04MRPMonitor } from './components/apps/MD04MRPMonitor';
+import { MC40ABCAnalysis } from './components/apps/MC40ABCAnalysis';
+import { CMIOverviewDashboard } from './components/apps/CMIOverviewDashboard';
 import { EWMRackVisualizer } from './components/apps/EWMRackVisualizer';
 import { GuidedTrainingCases } from './components/apps/GuidedTrainingCases';
 
@@ -15,25 +18,23 @@ const AppContent: React.FC = () => {
   const { activeApp } = useSAP();
 
   return (
-    <div className="min-h-screen bg-[#f5f6f8] text-[#1d2d3e] flex flex-col font-sans selection:bg-blue-100 selection:text-blue-900">
-      {/* SAP Fiori Shell Header */}
+    <div className="min-h-screen bg-[#f5f6f7] text-[#1d2d3e] flex flex-col font-sans selection:bg-blue-100 selection:text-blue-900">
       <FioriShellHeader />
 
-      {/* Main Workspace Body */}
       <main className="flex-1 pb-16">
         {activeApp === 'LAUNCHPAD' && <FioriLaunchpad />}
         {activeApp === 'MMBE' && <MMBEStockOverview />}
         {activeApp === 'MIGO' && <MIGOGoodsMovement />}
         {activeApp === 'ME21N' && <ME21NPurchaseOrders />}
         {activeApp === 'VL01N' && <VL01NOutboundDelivery />}
+        {activeApp === 'MD04' && <MD04MRPMonitor />}
+        {activeApp === 'MC40' && <MC40ABCAnalysis />}
+        {activeApp === 'CMI' && <CMIOverviewDashboard />}
         {activeApp === 'EWM_RACK' && <EWMRackVisualizer />}
         {activeApp === 'CASES' && <GuidedTrainingCases />}
       </main>
 
-      {/* Joule AI Assistant Drawer */}
       <JouleAssistantDrawer />
-
-      {/* Real-time SAP Toasts Notification Layer */}
       <ToastContainer />
     </div>
   );
