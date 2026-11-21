@@ -118,10 +118,10 @@ export const JouleAssistantDrawer: React.FC = () => {
             <div className="flex items-center gap-2">
               <h3 className="font-semibold text-sm tracking-tight">Joule AI Assistant</h3>
               <span className="px-1.5 py-0.5 bg-white/15 text-blue-100 rounded text-[10px] font-mono">
-                UTN-SAP Coach
+                Logistics Coach
               </span>
             </div>
-            <p className="text-[11px] text-slate-300">Traductor de conceptos de carrera a SAP S/4HANA</p>
+            <p className="text-[11px] text-slate-300">Asistente conceptual de módulos y transacciones SAP S/4HANA</p>
           </div>
         </div>
         <button

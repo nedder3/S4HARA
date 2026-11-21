@@ -118,6 +118,49 @@
   outline: none;
 }
 
+/* Global Evening Horizon Dark Mode Harmonization across all SAP modules (WCAG AA) */
+.dark .bg-white {
+  background-color: var(--sap-surface) !important;
+}
+.dark .bg-\[\#f5f6f7\],
+.dark .bg-\[\#f5f6f7\]\/60,
+.dark .bg-\[\#f5f6f7\]\/50,
+.dark .bg-\[\#f5f6f7\]\/40,
+.dark .bg-slate-50,
+.dark .bg-slate-100,
+.dark .bg-slate-100\/70 {
+  background-color: var(--sap-surface-subtle) !important;
+}
+.dark .bg-\[\#f0f4f9\],
+.dark .bg-\[\#f0f4f9\]\/50,
+.dark .bg-\[\#f0f4f9\]\/40 {
+  background-color: var(--sap-brand-soft) !important;
+}
+.dark .text-\[\#1d2d3e\],
+.dark .text-slate-800,
+.dark .text-slate-900,
+.dark .text-slate-700 {
+  color: var(--sap-text) !important;
+}
+.dark .text-\[\#5b738b\],
+.dark .text-slate-500,
+.dark .text-slate-600 {
+  color: var(--sap-text-muted) !important;
+}
+.dark .border-\[\#d9e1e8\],
+.dark .border-\[\#edf2f7\],
+.dark .border-slate-200,
+.dark .border-slate-100,
+.dark .divide-\[\#edf2f7\] > :not(:last-child) {
+  border-color: var(--sap-border) !important;
+}
+.dark input,
+.dark select {
+  background-color: var(--sap-surface-subtle) !important;
+  color: var(--sap-text) !important;
+  border-color: var(--sap-border) !important;
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
