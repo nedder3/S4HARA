@@ -1,66 +1,43 @@
 import React, { useState } from 'react';
 import { useSAP } from '../../context/SAPContext';
-import {
-  Sparkles,
-  X,
-  Send,
-  HelpCircle,
-  BookOpen,
-  ArrowRight,
-  ShieldCheck,
-  CheckCircle2,
-  Package,
-  Truck
-} from 'lucide-react';
+import { Sparkles, X, Send, ArrowRight } from 'lucide-react';
 
 interface JouleMessage {
   id: string;
   sender: 'user' | 'joule';
   text: string;
   timestamp: string;
-  category?: 'TEORIA' | 'ENTREVISTA' | 'OPERACION';
 }
 
 const FAQ_KNOWLEDGE_BASE = [
   {
-    question: '¿Qué es MIGO y qué movimientos son los más importantes?',
-    category: 'OPERACION' as const,
+    question: '¿Cómo se conectan MIGO 101, 311, 344, 601 y 651?',
     answer:
-      'MIGO ("Movement of Goods") es la transacción unificada de SAP para gestionar inventario. Los movimientos clave que te preguntarán en una entrevista son:\n\n' +
-      '• 101: Entrada de mercancías contra un Pedido de Compra (PO).\n' +
-      '• 102: Anulación de una entrada 101.\n' +
-      '• 311: Traspaso de almacén a almacén en 1 paso dentro del mismo centro (ej: de Almacén General a Cuarentena).\n' +
-      '• 501: Entrada de mercancía sin pedido (carga inicial o muestras gratuitas).\n' +
-      '• 601: Salida de mercancías para entrega al cliente (PGI) desde una entrega saliente (VL01N).'
+      'Son las 5 clases de movimiento fundamentales de SAP S/4HANA en logística:\n\n' +
+      '• 101: Entrada de mercancías contra Pedido de Compra (ME21N).\n' +
+      '• 311: Traspaso en 1 paso entre almacenes del mismo centro (ej: 0001 -> 0002 Calidad).\n' +
+      '• 344: Traspaso de Stock Libre Utilización a Stock Bloqueado (usado ante siniestros como la inundación de TecnoSur).\n' +
+      '• 601: Salida de mercancías a cliente (PGI desde VL02N).\n' +
+      '• 651: Devolución de cliente a Stock Bloqueado de Devoluciones (Logística Inversa: nunca ingresa directo a libre utilización).'
   },
   {
-    question: '¿Cómo explicar la diferencia entre SolPed (ME51N) y Pedido de Compra (ME21N)?',
-    category: 'ENTREVISTA' as const,
+    question: '¿Qué es MD04 (MRP) y cómo se vincula con la BOM (CS03)?',
     answer:
-      'En una entrevista de logística di esto:\n\n' +
-      '"La Solicitud de Pedido (SolPed / ME51N) es un documento interno del área solicitante (producción, mantenimiento o depósito) comunicando que necesita insumos. No tiene validez legal con terceros. El Pedido de Compra (Purchase Order / ME21N) es el contrato comercial vinculante que compras envía al proveedor con cantidades, precios pactados, condiciones Incoterm y fecha de entrega."'
+      'MD04 es la Lista de Necesidades/Stocks dinámica en SAP PP/MM. Traduce directamente la tabla MRP de Planificación y Control:\n' +
+      'Requerimientos brutos -> Recepciones programadas -> Disponibilidad proyectada -> Necesidades netas -> Liberación de órdenes desplazada según Lead Time (TS).\n\n' +
+      'Cuando se libera una orden del producto padre (ej: MAT-A100), SAP explota la Lista de Materiales (CS03 / BOM) y genera automáticamente los requerimientos brutos de sus componentes hijos (MAT-C300, MAT-3015).'
   },
   {
-    question: '¿Qué es PGI (Post Goods Issue) y por qué bloquea si el picking no coincide?',
-    category: 'OPERACION' as const,
+    question: '¿Cómo defender el OTIF y el Dimensionamiento de Muelles en una entrevista?',
     answer:
-      'PGI (Contabilización de Salida de Mercancías) es el hito final en logística de expedición. Al ejecutar PGI en la entrega saliente (VL02N):\n' +
-      '1. Se descuenta el stock físico del almacén (Mov. 601).\n' +
-      '2. Se transfiere el riesgo/propiedad de la carga al transporte o cliente.\n' +
-      '3. Se habilita a Finanzas a emitir la Factura de Venta (VF01).\n\n' +
-      'SAP bloquea el PGI si la cantidad pickeada es menor que la cantidad de la entrega para evitar discrepancias legales en el remito.'
+      'Dos reglas clave de Procesos Logísticos IV:\n' +
+      '1. OTIF (On-Time In-Full) mide entregas completas Y a tiempo en el cliente, no solo que el camión haya salido puntual del muelle.\n' +
+      '2. Muelles: N = [(Qd·Td) + (Qc·Tc)] / (H·60·U). El promedio diario no muestra las colas en hora pico; antes de invertir en construir un muelle nuevo, conviene implementar turnos de llegada, preparación anticipada y prevalidación documental.'
   },
   {
-    question: '¿Cómo se estructura el inventario en SAP S/4HANA?',
-    category: 'TEORIA' as const,
+    question: '¿Por qué una devolución (651) no vuelve directo a stock libre?',
     answer:
-      'La jerarquía es:\n' +
-      '• Mandante (Client): Nivel más alto (ej: 100).\n' +
-      '• Sociedad (Company Code): Entidad financiera legal (ej: 1000).\n' +
-      '• Centro / Planta (Plant): Unidad operativa física con inventario propio (ej: 1010 Planta Buenos Aires).\n' +
-      '• Almacén (Storage Location): Subdivisión dentro del centro (ej: 0001 Principal, 0002 Cuarentena).\n' +
-      '• Lote (Batch): Subdivisión para trazabilidad por vencimiento o partida de fabricación.\n' +
-      '• Ubicación (Bin): En EWM, el código exacto de pasillo y estantería (ej: A-01-01).'
+      'En logística inversa (caso Metalúrgica del Sur), primero se recibe e identifica (Mov. 651 en Almacén 0004 Bloqueado), luego se inspecciona físicamente y recién después se clasifica: lo recuperable pasa a reacondicionamiento/reingreso controlado, y lo irreversible a disposición final. Además se mide la Tasa de Recuperación (Unidades recuperadas / devueltas × 100).'
   }
 ];
 
@@ -71,7 +48,7 @@ export const JouleAssistantDrawer: React.FC = () => {
       id: 'init-1',
       sender: 'joule',
       text:
-        '¡Hola! Soy Joule, tu copiloto corporativo en SAP S/4HANA Logistics. Estoy aquí para ayudarte a comprender cada transacción, explicarte el impacto de cada movimiento de stock y entrenarte para preguntas típicas de entrevistas de logística. ¿Qué duda tienes hoy?',
+        'Hola. Soy Joule, tu copiloto en SAP S/4HANA Logistics. Puedo ayudarte a mapear tus materias de la Licenciatura en Logística (MRP, ABC, Expedición, Muelles, Logística Inversa y CMI/OTIF) a las transacciones reales de SAP y prepararte para entrevistas.',
       timestamp: 'Ahora'
     }
   ]);
@@ -89,126 +66,112 @@ export const JouleAssistantDrawer: React.FC = () => {
       text: query,
       timestamp: 'Ahora'
     };
-
     setMessages(prev => [...prev, userMsg]);
     if (!textToSend) setInputText('');
 
-    // AI simulation logic
-    setTimeout(() => {
-      let reply = '';
-      const lower = query.toLowerCase();
+    const matchedFaq = FAQ_KNOWLEDGE_BASE.find(f => f.question === query);
 
-      if (lower.includes('101') || lower.includes('migo')) {
-        reply =
-          'En MIGO, el movimiento 101 registra la entrada de mercaderías contra un pedido de compra abierto (PO). ' +
-          'Al contabilizarlo, SAP incrementa el stock de libre utilización en el almacén de destino, actualiza el historial del pedido (ME23N) ' +
-          'y genera un Documento de Material (número 500000xxxx). Si el lote viene sin inspección, entra directo a 0001; si requiere ensayo de calidad, se recepciona en control de calidad (stock EM).';
-      } else if (lower.includes('311') || lower.includes('traspaso') || lower.includes('transferencia')) {
-        reply =
-          'El movimiento 311 es un traslado en un solo paso entre dos almacenes de la misma planta. ' +
-          'Es fundamental en logística interna cuando necesitas mover mercadería de un almacén general (0001) a un área de cuarentena (0002), ' +
-          'o cuando abasteces el área de picking para despacho (0003).';
-      } else if (lower.includes('601') || lower.includes('pgi') || lower.includes('salida') || lower.includes('despacho')) {
-        reply =
-          'El movimiento 601 es la salida de mercancías para una entrega saliente a cliente. ' +
-          'Es el paso posterior al Picking (VL02N). Al contabilizar el PGI, el inventario se reduce físicamente y en los libros contables, ' +
-          'dejando la entrega lista para emisión de factura (VF01).';
-      } else if (lower.includes('entrevista') || lower.includes('pregunt') || lower.includes('tip')) {
-        reply =
-          'Un reclutador de logística en SAP casi siempre te preguntará:\n' +
-          '1. "¿Qué haces si hay una discrepancia entre lo que dice el remito físico y el pedido en SAP?"\n' +
-          '-> Respuesta experta: Se recibe en SAP únicamente la cantidad física real contada (recepción parcial) o se ingresa la diferencia en stock de control de calidad / bloqueado para reclamo formal al proveedor.\n\n' +
-          '2. "¿Cómo consultas rápidamente la disponibilidad total de un SKU?"\n' +
-          '-> Respuesta experta: Mediante la transacción MMBE (Resumen de stocks) filtrando por Centro y Almacén.';
-      } else {
-        reply =
-          `Respecto a "${query}": En SAP S/4HANA Logistics, cada proceso está interconectado mediante documentos maestros y números de transacción. ` +
-          `Recuerda siempre verificar la estructura organizativa (Centro 1010 y Almacén) y el tipo de stock (Libre utilización, Control de calidad o Bloqueado). ` +
-          `Puedes consultar la app MMBE para ver reflejado cualquier movimiento en tiempo real.`;
+    setTimeout(() => {
+      let reply = matchedFaq?.answer || '';
+      if (!reply) {
+        const lower = query.toLowerCase();
+        if (lower.includes('mrp') || lower.includes('md04') || lower.includes('bom') || lower.includes('lote')) {
+          reply =
+            'En SAP, el MRP se monitorea en MD04 y la estructura del producto en CS03. Puedes elegir políticas de tamaño de lote: Lote a Lote (EX / L4L, minimiza inventario medio), Lote Fijo (FX, reduce costo de lanzamiento) o EOQ. Si el inventario físico es menor al del sistema, el MRP adelanta la liberación de órdenes en el padre y sus hijos.';
+        } else if (lower.includes('344') || lower.includes('bloque') || lower.includes('tecnosur') || lower.includes('inund')) {
+          reply =
+            'El movimiento MIGO 344 realiza un traspaso de Stock Libre Utilización a Stock Bloqueado dentro del mismo almacén. Es el estándar ante siniestros (como el caso TecnoSur) para impedir que Ventas o Picking comprometan mercadería dañada mientras se inspecciona.';
+        } else if (lower.includes('651') || lower.includes('devol') || lower.includes('inversa')) {
+          reply =
+            'En Logística Inversa, una devolución de cliente entra con MIGO Mov. 651 a Stock Bloqueado de Devoluciones (Almacén 0004). Nunca debe reingresar directo a Libre Utilización. Luego de inspección se decide: reingreso controlado, reparación, retorno a proveedor o disposición final.';
+        } else if (lower.includes('abc') || lower.includes('pareto') || lower.includes('mc40')) {
+          reply =
+            'La transacción MC40 ejecuta el Análisis ABC (Pareto 80/20). Recuerda que el criterio importa: clasificar por Valor de Utilización (consumo × precio) prioriza rotación y capital, mientras que clasificar por Valorizado Total de Inventario detecta sobrestock inmovilizado.';
+        } else if (lower.includes('muelle') || lower.includes('otif') || lower.includes('cmi') || lower.includes('601') || lower.includes('pgi')) {
+          reply =
+            'En Expedición (VL02N), el flujo exige 6 controles: Picking -> Verificación -> Consolidación -> Acondicionamiento -> Carga (capacidad, estabilidad, compatibilidad, secuencia) -> Liberación PGI (Mov. 601). Para muelles aplica N = (Qd·Td + Qc·Tc) / (H·60·U), validando siempre los picos horarios.';
+        } else {
+          reply =
+            `Sobre "${query}": En SAP S/4HANA Logistics cada decisión impacta en tiempo real sobre inventario (MMBE), planificación (MD04) y tablero gerencial (CMI/OTIF). Prueba ejecutar el caso TecnoSur o Metalúrgica del Sur para ver la trazabilidad completa por número de documento.`;
+        }
       }
 
-      const jouleMsg: JouleMessage = {
-        id: (Date.now() + 1).toString(),
-        sender: 'joule',
-        text: reply,
-        timestamp: 'Ahora'
-      };
-      setMessages(prev => [...prev, jouleMsg]);
-    }, 400);
+      setMessages(prev => [
+        ...prev,
+        { id: (Date.now() + 1).toString(), sender: 'joule', text: reply, timestamp: 'Ahora' }
+      ]);
+    }, 300);
   };
 
   return (
     <aside
-      className="fixed inset-y-0 right-0 w-full sm:w-[460px] bg-white border-l border-slate-200 shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-200"
+      className="fixed inset-y-0 right-0 w-full sm:w-[440px] bg-white border-l border-[#d9e1e8] shadow-2xl z-50 flex flex-col"
       aria-label="Asistente Joule para SAP Logistics"
     >
       {/* Header */}
       <div className="bg-[#1b2a4a] text-white p-4 flex items-center justify-between border-b border-[#2a3f68]">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-white shadow-md">
-            <Sparkles className="w-4 h-4 text-amber-300" strokeWidth={2} />
+          <div className="w-8 h-8 rounded-lg bg-[#0a6ed1] flex items-center justify-center text-white">
+            <Sparkles className="w-4 h-4" strokeWidth={2} />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h3 className="font-semibold text-sm tracking-tight">Joule AI Assistant</h3>
-              <span className="px-1.5 py-0.2 bg-blue-500/20 text-blue-200 border border-blue-400/30 rounded text-[10px] font-mono">
-                Logistics Coach
+              <span className="px-1.5 py-0.5 bg-white/15 text-blue-100 rounded text-[10px] font-mono">
+                UTN-SAP Coach
               </span>
             </div>
-            <p className="text-[11px] text-slate-300">Tutor de conceptos SAP & Preguntas de Entrevistas</p>
+            <p className="text-[11px] text-slate-300">Traductor de conceptos de carrera a SAP S/4HANA</p>
           </div>
         </div>
         <button
           onClick={() => setIsJouleOpen(false)}
-          className="text-slate-300 hover:text-white p-1 rounded-md hover:bg-slate-700/50 transition-colors"
+          className="text-slate-300 hover:text-white p-1 rounded-md hover:bg-white/10 transition-colors"
           aria-label="Cerrar Joule"
         >
           <X className="w-5 h-5" strokeWidth={1.8} />
         </button>
       </div>
 
-      {/* Quick Prompts / FAQ Carousel */}
-      <div className="p-3 bg-slate-50 border-b border-slate-200">
-        <span className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider block mb-2">
-          Preguntas Clave para el Mercado Laboral:
+      {/* Quick Prompts */}
+      <div className="p-3 bg-[#f5f6f7] border-b border-[#d9e1e8]">
+        <span className="text-[10px] font-bold text-[#5b738b] uppercase tracking-wider block mb-2">
+          Consultas Frecuentes de Entrevista:
         </span>
         <div className="flex flex-col gap-1.5">
-          {FAQ_KNOWLEDGE_BASE.slice(0, 3).map((faq, idx) => (
+          {FAQ_KNOWLEDGE_BASE.map((faq, idx) => (
             <button
               key={idx}
               onClick={() => handleSend(faq.question)}
-              className="text-left text-xs p-2 rounded-md bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 text-slate-700 transition-colors flex items-center justify-between group"
+              className="text-left text-xs p-2 rounded-lg bg-white border border-[#d9e1e8] hover:border-[#0a6ed1] hover:bg-[#f0f4f9] text-[#1d2d3e] transition-colors flex items-center justify-between group"
             >
               <span className="truncate pr-2">{faq.question}</span>
-              <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 shrink-0" strokeWidth={2} />
+              <ArrowRight className="w-3.5 h-3.5 text-[#5b738b] group-hover:text-[#0a6ed1] shrink-0" strokeWidth={2} />
             </button>
           ))}
         </div>
       </div>
 
-      {/* Messages Scroll Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-slate-50/50">
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#f5f6f7]/60">
         {messages.map(msg => (
-          <div
-            key={msg.id}
-            className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
-          >
+          <div key={msg.id} className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
             <div
               className={`max-w-[90%] p-3.5 rounded-xl text-xs leading-relaxed shadow-xs whitespace-pre-wrap ${
                 msg.sender === 'user'
                   ? 'bg-[#0a6ed1] text-white rounded-tr-none'
-                  : 'bg-white text-slate-800 border border-slate-200 rounded-tl-none'
+                  : 'bg-white text-[#1d2d3e] border border-[#d9e1e8] rounded-tl-none'
               }`}
             >
               {msg.text}
             </div>
-            <span className="text-[10px] text-slate-400 mt-1 px-1 font-mono">{msg.timestamp}</span>
+            <span className="text-[10px] text-[#5b738b] mt-1 px-1 font-mono">{msg.timestamp}</span>
           </div>
         ))}
       </div>
 
-      {/* Input Form */}
-      <div className="p-3 bg-white border-t border-slate-200">
+      {/* Input */}
+      <div className="p-3 bg-white border-t border-[#d9e1e8]">
         <form
           onSubmit={e => {
             e.preventDefault();
@@ -220,14 +183,14 @@ export const JouleAssistantDrawer: React.FC = () => {
             type="text"
             value={inputText}
             onChange={e => setInputText(e.target.value)}
-            placeholder="Pregúntale a Joule sobre cualquier T-Code o flujo SAP..."
-            className="flex-1 text-xs px-3 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            placeholder="Pregunta sobre MRP, ABC, 344, 651, OTIF o Muelles..."
+            className="flex-1 text-xs px-3 py-2.5 rounded-lg border border-[#d9e1e8] focus:outline-none focus:border-[#0a6ed1] focus:ring-1 focus:ring-[#0a6ed1]"
           />
           <button
             type="submit"
-            className="p-2.5 rounded-lg bg-[#0a6ed1] hover:bg-blue-700 text-white transition-colors disabled:opacity-50"
+            className="p-2.5 rounded-lg bg-[#0a6ed1] hover:bg-[#0854a0] text-white transition-colors disabled:opacity-50"
             disabled={!inputText.trim()}
-            aria-label="Enviar pregunta"
+            aria-label="Enviar"
           >
             <Send className="w-4 h-4" strokeWidth={2} />
           </button>

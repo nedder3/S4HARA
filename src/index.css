@@ -6,7 +6,7 @@
     --sap-brand-hover: #0854a0;
     --sap-shell-bg: #1b2a4a;
     --sap-shell-text: #ffffff;
-    --sap-bg: #f5f6f8;
+    --sap-bg: #f5f6f7;
     --sap-card-bg: #ffffff;
     --sap-border: #d9e1e8;
     --sap-border-light: #edf2f7;
@@ -26,18 +26,25 @@
     padding: 0;
     background-color: var(--sap-bg);
     color: var(--sap-text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Tabular numbers for business codes, dates, quantities */
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235b738b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.65rem center;
+    background-size: 14px;
+    padding-right: 2rem !important;
+  }
+
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }
 }
 
-/* Custom scrollbar matching SAP Fiori */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;

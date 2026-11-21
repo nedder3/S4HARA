@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useSAP, AppView } from '../../context/SAPContext';
+import { useSAP } from '../../context/SAPContext';
 import {
   Boxes,
   ArrowDownToLine,
@@ -7,13 +7,11 @@ import {
   Truck,
   Grid3X3,
   BookOpen,
-  TrendingUp,
   AlertTriangle,
-  ArrowRight,
-  ShieldAlert,
-  Clock,
-  Layers,
-  ChevronRight
+  ChevronRight,
+  Cpu,
+  BarChart3,
+  Gauge
 } from 'lucide-react';
 
 export const FioriLaunchpad: React.FC = () => {
@@ -23,377 +21,450 @@ export const FioriLaunchpad: React.FC = () => {
     materials,
     purchaseOrders,
     outboundDeliveries,
-    caseStudies,
-    setActiveCaseStudyId
+    returnOrders,
+    kpiBaseline,
+    caseStudies
   } = useSAP();
 
-  const [activeTab, setActiveTab] = useState<'ALL' | 'MM' | 'SD' | 'WM' | 'CASES'>('ALL');
+  const [activeTab, setActiveTab] = useState<'ALL' | 'MM' | 'PP' | 'SD' | 'ANALYTICS' | 'CASES'>('ALL');
 
-  // Compute live KPIs
+  // Live KPIs
   const totalStockUnits = stocks.reduce((acc, s) => acc + s.unrestricted + s.qualityInspection + s.blocked, 0);
-  
+  const totalBlockedUnits = stocks.reduce((acc, s) => acc + s.blocked, 0);
   const totalStockValuation = stocks.reduce((acc, s) => {
     const mat = materials.find(m => m.id === s.materialId);
-    const price = mat ? mat.basePrice : 0;
-    return acc + (s.unrestricted + s.qualityInspection + s.blocked) * price;
+    return acc + (s.unrestricted + s.qualityInspection + s.blocked) * (mat ? mat.basePrice : 0);
   }, 0);
 
   const pendingPOs = purchaseOrders.filter(p => p.status !== 'COMPLETADO').length;
   const pendingDeliveries = outboundDeliveries.filter(d => d.pgiStatus !== 'CONTABILIZADO').length;
-  const qualityInspectionUnits = stocks.reduce((acc, s) => acc + s.qualityInspection, 0);
+  const pendingReturns = returnOrders.filter(r => r.disposition === 'PENDIENTE_INSPECCION').length;
+  const otifPercent = ((kpiBaseline.otifDeliveries / kpiBaseline.dispatchedOrders) * 100).toFixed(1);
   const completedCasesCount = caseStudies.filter(c => c.isCompleted).length;
 
   return (
-    <div className="max-w-[1700px] mx-auto px-4 py-6 space-y-6 animate-in fade-in-50 duration-200">
-      {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-[#1b2a4a] via-[#1f3560] to-[#0a6ed1] rounded-2xl p-6 text-white shadow-md relative overflow-hidden border border-[#2a4374]">
-        <div className="relative z-10 max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-blue-200 text-xs font-mono mb-3 backdrop-blur-sm border border-white/10">
-            <span>SAP S/4HANA Enterprise Management • Release 2026</span>
+    <div className="max-w-[1700px] mx-auto px-4 py-6 space-y-6">
+      {/* SAP Fiori Morning Horizon Hero Header Card */}
+      <div className="bg-white rounded-2xl p-6 border border-[#d9e1e8] shadow-xs grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+        <div className="lg:col-span-8 space-y-2.5">
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-[#f0f4f9] text-[#0a6ed1] text-[11px] font-mono font-semibold border border-[#c2dcf7]">
+            <span>SAP S/4HANA Logistics Cloud · Currícula UTN FRBB</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Simulador Operativo para Licenciatura en Logística
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1d2d3e]">
+            Entorno de Práctica Profesional — Licenciatura en Logística
           </h1>
-          <p className="mt-2 text-sm sm:text-base text-blue-100/90 leading-relaxed">
-            Aprende la dinámica de trabajo de un centro logístico real: gestión de stock multicentro, recepción de camiones mediante documentos de material (MIGO), pedidos de compra y despacho con picking y PGI.
+          <p className="text-sm text-[#5b738b] leading-relaxed max-w-3xl">
+            Conecta los contenidos de tu carrera (*MRP y BOM, Análisis ABC, Expedición, Dimensionamiento de Muelles, Logística Inversa y CMI/OTIF*) con las transacciones reales de **SAP S/4HANA** mediante casos prácticos integradores.
           </p>
-
-          <div className="mt-5 flex flex-wrap items-center gap-3">
+          <div className="pt-2 flex flex-wrap items-center gap-2.5">
             <button
               onClick={() => setActiveApp('CASES')}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white text-[#1b2a4a] text-xs sm:text-sm font-semibold hover:bg-blue-50 transition-all shadow-sm"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#0a6ed1] hover:bg-[#0854a0] text-white text-xs sm:text-sm font-semibold transition-colors shadow-xs"
             >
-              <BookOpen className="w-4 h-4 text-[#0a6ed1]" strokeWidth={2} />
-              <span>Ver Misiones Prácticas ({completedCasesCount}/{caseStudies.length})</span>
+              <BookOpen className="w-4 h-4" strokeWidth={2} />
+              <span>Misiones UTN-to-SAP ({completedCasesCount}/{caseStudies.length})</span>
             </button>
             <button
-              onClick={() => setActiveApp('MMBE')}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-700/60 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold transition-all border border-blue-400/30"
+              onClick={() => setActiveApp('CMI')}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white hover:bg-[#f0f4f9] text-[#1d2d3e] text-xs sm:text-sm font-semibold transition-colors border border-[#d9e1e8]"
             >
-              <Boxes className="w-4 h-4" strokeWidth={2} />
-              <span>Explorar Stock (MMBE)</span>
+              <Gauge className="w-4 h-4 text-[#0a6ed1]" strokeWidth={2} />
+              <span>Tablero CMI / OTIF</span>
             </button>
           </div>
         </div>
 
-        {/* Subtle decorative background SVG grid */}
-        <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-10 pointer-events-none flex items-center justify-center">
-          <Grid3X3 className="w-96 h-96 text-white" strokeWidth={1} />
+        {/* Right Asymmetric Quick Summary Panel */}
+        <div className="lg:col-span-4 bg-[#f5f6f7] rounded-xl p-4 border border-[#d9e1e8] space-y-3">
+          <div className="flex items-center justify-between text-[11px] font-mono font-bold text-[#5b738b] uppercase tracking-wider">
+            <span>Estado Operativo Centro 1010</span>
+            <span className="text-[#0a6ed1]">LIVE</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2.5">
+            <div className="bg-white p-3 rounded-lg border border-[#d9e1e8]">
+              <span className="text-[11px] text-[#5b738b] block">OTIF Mensual</span>
+              <span className="text-lg font-bold text-[#107e3e] tabular-nums font-mono">{otifPercent}%</span>
+            </div>
+            <div className="bg-white p-3 rounded-lg border border-[#d9e1e8]">
+              <span className="text-[11px] text-[#5b738b] block">Stock Bloqueado</span>
+              <span className="text-lg font-bold text-[#bb0000] tabular-nums font-mono">{totalBlockedUnits} u.</span>
+            </div>
+            <div className="bg-white p-3 rounded-lg border border-[#d9e1e8]">
+              <span className="text-[11px] text-[#5b738b] block">Devoluciones Pend.</span>
+              <span className="text-lg font-bold text-[#e9730c] tabular-nums font-mono">{pendingReturns}</span>
+            </div>
+            <div className="bg-white p-3 rounded-lg border border-[#d9e1e8]">
+              <span className="text-[11px] text-[#5b738b] block">Entregas sin PGI</span>
+              <span className="text-lg font-bold text-[#0a6ed1] tabular-nums font-mono">{pendingDeliveries}</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* KPI Horizon Metrics Row */}
+      {/* KPI Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* KPI 1 */}
-        <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex flex-col justify-between hover:border-blue-400 transition-colors">
+        <div className="bg-white rounded-xl p-4 border border-[#d9e1e8] shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-              Stock Total en Planta
-            </span>
-            <Boxes className="w-4 h-4 text-blue-600" strokeWidth={1.8} />
+            <span className="text-[11px] font-semibold text-[#5b738b] uppercase tracking-wider">Inventario Valorizado</span>
+            <Boxes className="w-4 h-4 text-[#0a6ed1]" strokeWidth={1.8} />
           </div>
-          <div className="mt-3">
-            <div className="text-2xl font-bold text-slate-800 tabular-nums">
-              {totalStockUnits.toLocaleString()} <span className="text-xs font-normal text-slate-500">unidades</span>
+          <div className="mt-2.5">
+            <div className="text-2xl font-bold text-[#1d2d3e] tabular-nums font-mono">
+              ${totalStockValuation.toLocaleString('es-AR')}
             </div>
-            <div className="text-xs text-slate-500 mt-1 flex items-center gap-1 font-mono">
-              <span>Valuación:</span>
-              <span className="font-semibold text-slate-700">${totalStockValuation.toLocaleString()} USD</span>
+            <div className="text-xs text-[#5b738b] mt-1 tabular-nums">
+              {totalStockUnits.toLocaleString('es-AR')} unidades en {materials.length} SKUs
             </div>
           </div>
         </div>
 
-        {/* KPI 2 */}
-        <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex flex-col justify-between hover:border-blue-400 transition-colors">
+        <div className="bg-white rounded-xl p-4 border border-[#d9e1e8] shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-              Aprovisionamiento Pendiente
-            </span>
-            <ArrowDownToLine className="w-4 h-4 text-emerald-600" strokeWidth={1.8} />
+            <span className="text-[11px] font-semibold text-[#5b738b] uppercase tracking-wider">Abastecimiento (P2/P3)</span>
+            <ArrowDownToLine className="w-4 h-4 text-[#107e3e]" strokeWidth={1.8} />
           </div>
-          <div className="mt-3">
-            <div className="text-2xl font-bold text-slate-800 tabular-nums">
-              {pendingPOs} <span className="text-xs font-normal text-slate-500">pedidos abiertos</span>
+          <div className="mt-2.5">
+            <div className="text-2xl font-bold text-[#1d2d3e] tabular-nums font-mono">
+              {pendingPOs} <span className="text-xs font-normal text-[#5b738b]">OC abiertas</span>
             </div>
-            <div className="text-xs text-emerald-700 mt-1 font-medium">
-              Listos para recepción física (MIGO 101)
+            <div className="text-xs text-[#107e3e] mt-1 font-medium">
+              Listas para recepción física (MIGO 101)
             </div>
           </div>
         </div>
 
-        {/* KPI 3 */}
-        <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex flex-col justify-between hover:border-blue-400 transition-colors">
+        <div className="bg-white rounded-xl p-4 border border-[#d9e1e8] shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-              Expedición / Despacho
-            </span>
-            <Truck className="w-4 h-4 text-blue-600" strokeWidth={1.8} />
+            <span className="text-[11px] font-semibold text-[#5b738b] uppercase tracking-wider">Expedición & Muelles</span>
+            <Truck className="w-4 h-4 text-[#e9730c]" strokeWidth={1.8} />
           </div>
-          <div className="mt-3">
-            <div className="text-2xl font-bold text-slate-800 tabular-nums">
-              {pendingDeliveries} <span className="text-xs font-normal text-slate-500">entregas pendientes</span>
+          <div className="mt-2.5">
+            <div className="text-2xl font-bold text-[#1d2d3e] tabular-nums font-mono">
+              {pendingDeliveries} <span className="text-xs font-normal text-[#5b738b]">entregas</span>
             </div>
-            <div className="text-xs text-amber-700 mt-1 font-medium">
-              Requieren Picking & Salida (PGI 601)
+            <div className="text-xs text-[#e9730c] mt-1 font-medium">
+              Verificación 6 pasos + PGI (Mov. 601)
             </div>
           </div>
         </div>
 
-        {/* KPI 4 */}
-        <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex flex-col justify-between hover:border-blue-400 transition-colors">
+        <div className="bg-white rounded-xl p-4 border border-[#d9e1e8] shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-              Lotes en Cuarentena
-            </span>
-            <AlertTriangle className="w-4 h-4 text-amber-500" strokeWidth={1.8} />
+            <span className="text-[11px] font-semibold text-[#5b738b] uppercase tracking-wider">Logística Inversa</span>
+            <AlertTriangle className="w-4 h-4 text-[#bb0000]" strokeWidth={1.8} />
           </div>
-          <div className="mt-3">
-            <div className="text-2xl font-bold text-slate-800 tabular-nums">
-              {qualityInspectionUnits} <span className="text-xs font-normal text-slate-500">unidades en revisión</span>
+          <div className="mt-2.5">
+            <div className="text-2xl font-bold text-[#1d2d3e] tabular-nums font-mono">
+              {pendingReturns} <span className="text-xs font-normal text-[#5b738b]">pendiente insp.</span>
             </div>
-            <div className="text-xs text-slate-500 mt-1">
-              Almacén 0002 (Control de Calidad)
+            <div className="text-xs text-[#5b738b] mt-1">
+              Ingreso obligatorio a Bloqueado (Mov. 651)
             </div>
           </div>
         </div>
       </div>
 
-      {/* Module Filter Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto">
-        <button
-          onClick={() => setActiveTab('ALL')}
-          className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap ${
-            activeTab === 'ALL'
-              ? 'bg-[#0a6ed1] text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-200/70'
-          }`}
-        >
-          Todas las Aplicaciones
-        </button>
-        <button
-          onClick={() => setActiveTab('MM')}
-          className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap ${
-            activeTab === 'MM'
-              ? 'bg-[#0a6ed1] text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-200/70'
-          }`}
-        >
-          Gestión de Stock & Compras (MM)
-        </button>
-        <button
-          onClick={() => setActiveTab('SD')}
-          className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap ${
-            activeTab === 'SD'
-              ? 'bg-[#0a6ed1] text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-200/70'
-          }`}
-        >
-          Expedición & Salidas (SD / LE)
-        </button>
-        <button
-          onClick={() => setActiveTab('WM')}
-          className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap ${
-            activeTab === 'WM'
-              ? 'bg-[#0a6ed1] text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-200/70'
-          }`}
-        >
-          Almacenes & Racks (EWM)
-        </button>
-        <button
-          onClick={() => setActiveTab('CASES')}
-          className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap ${
-            activeTab === 'CASES'
-              ? 'bg-[#0a6ed1] text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-200/70'
-          }`}
-        >
-          Misiones de Práctica
-        </button>
+      {/* Category Filter Tabs */}
+      <div className="flex items-center gap-1.5 border-b border-[#d9e1e8] pb-2.5 overflow-x-auto" role="tablist">
+        {[
+          { id: 'ALL', label: 'Todas las Aplicaciones (9)' },
+          { id: 'MM', label: 'Inventario, Compras & Log. Inversa (MM)' },
+          { id: 'PP', label: 'Planificación MRP & BOM (PP)' },
+          { id: 'SD', label: 'Expedición, Muelles & Racks (SD / EWM)' },
+          { id: 'ANALYTICS', label: 'ABC & Tablero CMI / OTIF' },
+          { id: 'CASES', label: 'Casos Integradores UTN' }
+        ].map(tab => (
+          <button
+            key={tab.id}
+            role="tab"
+            aria-selected={activeTab === tab.id}
+            onClick={() => setActiveTab(tab.id as typeof activeTab)}
+            className={`px-3.5 py-2 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap ${
+              activeTab === tab.id
+                ? 'bg-[#0a6ed1] text-white shadow-xs'
+                : 'text-[#5b738b] hover:bg-white hover:text-[#1d2d3e]'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      {/* Main Apps Grid */}
+      {/* Fiori Horizon Tiles Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {/* App 1: MMBE */}
+        {/* 1. MMBE */}
         {(activeTab === 'ALL' || activeTab === 'MM') && (
           <div
             onClick={() => setActiveApp('MMBE')}
-            className="group bg-white rounded-xl p-5 border border-slate-200 shadow-xs hover:shadow-md hover:border-blue-400 cursor-pointer transition-all flex flex-col justify-between"
+            className="group bg-white rounded-xl p-5 border border-[#d9e1e8] shadow-xs hover:shadow-md hover:border-[#0a6ed1] cursor-pointer transition-all flex flex-col justify-between"
           >
             <div>
               <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-lg bg-blue-50 text-[#0a6ed1] flex items-center justify-center group-hover:bg-[#0a6ed1] group-hover:text-white transition-colors">
+                <div className="w-10 h-10 rounded-lg bg-[#f0f4f9] text-[#0a6ed1] flex items-center justify-center group-hover:bg-[#0a6ed1] group-hover:text-white transition-colors">
                   <Boxes className="w-5 h-5" strokeWidth={1.8} />
                 </div>
-                <span className="px-2 py-0.5 rounded bg-slate-100 font-mono text-xs font-bold text-slate-700 group-hover:bg-blue-100 group-hover:text-blue-800 transition-colors">
+                <span className="px-2 py-0.5 rounded bg-[#f5f6f7] border border-[#d9e1e8] font-mono text-xs font-bold text-[#1d2d3e]">
                   MMBE
                 </span>
               </div>
-              <h3 className="text-base font-bold text-slate-800 group-hover:text-[#0a6ed1] transition-colors">
-                Resumen de Stocks (Stock Overview)
+              <h3 className="text-base font-bold text-[#1d2d3e] group-hover:text-[#0a6ed1] transition-colors">
+                Resumen de Stocks & Indicador ABC
               </h3>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                Visualización jerárquica de inventario por Centro (1010), Almacén (0001, 0002) y Lotes. Consulta libre utilización y stock bloqueado.
+              <p className="text-xs text-[#5b738b] mt-1 leading-relaxed">
+                Stock jerárquico por Centro, Almacén (0001–0004) y Lote. Controla Libre Utilización, Inspección de Calidad y Bloqueado.
               </p>
             </div>
-            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-              <span className="font-mono">{materials.length} Materiales registrados</span>
-              <span className="text-[#0a6ed1] font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                Abrir App <ChevronRight className="w-3.5 h-3.5" />
+            <div className="mt-4 pt-3 border-t border-[#edf2f7] flex items-center justify-between text-xs text-[#5b738b]">
+              <span className="font-mono tabular-nums">{materials.length} SKUs · {totalBlockedUnits} bloq.</span>
+              <span className="text-[#0a6ed1] font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                Abrir <ChevronRight className="w-3.5 h-3.5" />
               </span>
             </div>
           </div>
         )}
 
-        {/* App 2: MIGO */}
+        {/* 2. MIGO */}
         {(activeTab === 'ALL' || activeTab === 'MM') && (
           <div
             onClick={() => setActiveApp('MIGO')}
-            className="group bg-white rounded-xl p-5 border border-slate-200 shadow-xs hover:shadow-md hover:border-blue-400 cursor-pointer transition-all flex flex-col justify-between"
+            className="group bg-white rounded-xl p-5 border border-[#d9e1e8] shadow-xs hover:shadow-md hover:border-[#0a6ed1] cursor-pointer transition-all flex flex-col justify-between"
           >
             <div>
               <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                <div className="w-10 h-10 rounded-lg bg-[#eaf7ee] text-[#107e3e] flex items-center justify-center group-hover:bg-[#107e3e] group-hover:text-white transition-colors">
                   <ArrowDownToLine className="w-5 h-5" strokeWidth={1.8} />
                 </div>
-                <span className="px-2 py-0.5 rounded bg-slate-100 font-mono text-xs font-bold text-slate-700 group-hover:bg-emerald-100 group-hover:text-emerald-800 transition-colors">
+                <span className="px-2 py-0.5 rounded bg-[#f5f6f7] border border-[#d9e1e8] font-mono text-xs font-bold text-[#1d2d3e]">
                   MIGO
                 </span>
               </div>
-              <h3 className="text-base font-bold text-slate-800 group-hover:text-emerald-700 transition-colors">
-                Movimientos de Mercancías (Goods Movement)
+              <h3 className="text-base font-bold text-[#1d2d3e] group-hover:text-[#107e3e] transition-colors">
+                Movimientos & Logística Inversa
               </h3>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                Contabiliza entradas de pedidos de compra (Mov. 101) y traspasos entre almacenes internos (Mov. 311). Emite Documentos de Material.
+              <p className="text-xs text-[#5b738b] mt-1 leading-relaxed">
+                Entradas OC (101), Traspasos internos (311), Bloqueo preventivo ante siniestros (344) y Devoluciones de clientes (651) con inspección.
               </p>
             </div>
-            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-              <span className="font-mono text-emerald-700 font-semibold">{pendingPOs} Entradas disponibles</span>
-              <span className="text-emerald-700 font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                Abrir App <ChevronRight className="w-3.5 h-3.5" />
+            <div className="mt-4 pt-3 border-t border-[#edf2f7] flex items-center justify-between text-xs text-[#5b738b]">
+              <span className="font-mono text-[#107e3e] font-semibold">101 · 311 · 344 · 651</span>
+              <span className="text-[#0a6ed1] font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                Abrir <ChevronRight className="w-3.5 h-3.5" />
               </span>
             </div>
           </div>
         )}
 
-        {/* App 3: ME21N */}
-        {(activeTab === 'ALL' || activeTab === 'MM') && (
+        {/* 3. MD04 MRP & BOM */}
+        {(activeTab === 'ALL' || activeTab === 'PP') && (
           <div
-            onClick={() => setActiveApp('ME21N')}
-            className="group bg-white rounded-xl p-5 border border-slate-200 shadow-xs hover:shadow-md hover:border-blue-400 cursor-pointer transition-all flex flex-col justify-between"
+            onClick={() => setActiveApp('MD04')}
+            className="group bg-white rounded-xl p-5 border border-[#d9e1e8] shadow-xs hover:shadow-md hover:border-[#0a6ed1] cursor-pointer transition-all flex flex-col justify-between"
           >
             <div>
               <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                  <ShoppingCart className="w-5 h-5" strokeWidth={1.8} />
+                <div className="w-10 h-10 rounded-lg bg-[#f0f4f9] text-[#0a6ed1] flex items-center justify-center group-hover:bg-[#0a6ed1] group-hover:text-white transition-colors">
+                  <Cpu className="w-5 h-5" strokeWidth={1.8} />
                 </div>
-                <span className="px-2 py-0.5 rounded bg-slate-100 font-mono text-xs font-bold text-slate-700 group-hover:bg-indigo-100 group-hover:text-indigo-800 transition-colors">
-                  ME21N
+                <span className="px-2 py-0.5 rounded bg-[#f5f6f7] border border-[#d9e1e8] font-mono text-xs font-bold text-[#1d2d3e]">
+                  MD04 / CS03
                 </span>
               </div>
-              <h3 className="text-base font-bold text-slate-800 group-hover:text-indigo-700 transition-colors">
-                Gestión de Pedidos de Compra (Purchase Orders)
+              <h3 className="text-base font-bold text-[#1d2d3e] group-hover:text-[#0a6ed1] transition-colors">
+                Monitor MRP & Explosión BOM
               </h3>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                Administración de órdenes de compra a proveedores industriales con precios, cantidades pactadas y seguimiento de entregas.
+              <p className="text-xs text-[#5b738b] mt-1 leading-relaxed">
+                Proyección semanal de necesidades brutas, recepciones programadas, disponibilidad, necesidades netas y liberación de órdenes según Lead Time.
               </p>
             </div>
-            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-              <span className="font-mono">{purchaseOrders.length} Órdenes en sistema</span>
-              <span className="text-indigo-700 font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                Abrir App <ChevronRight className="w-3.5 h-3.5" />
+            <div className="mt-4 pt-3 border-t border-[#edf2f7] flex items-center justify-between text-xs text-[#5b738b]">
+              <span className="font-mono">Planificación y Control UTN</span>
+              <span className="text-[#0a6ed1] font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                Abrir <ChevronRight className="w-3.5 h-3.5" />
               </span>
             </div>
           </div>
         )}
 
-        {/* App 4: VL01N */}
+        {/* 4. MC40 ABC Pareto */}
+        {(activeTab === 'ALL' || activeTab === 'ANALYTICS' || activeTab === 'MM') && (
+          <div
+            onClick={() => setActiveApp('MC40')}
+            className="group bg-white rounded-xl p-5 border border-[#d9e1e8] shadow-xs hover:shadow-md hover:border-[#0a6ed1] cursor-pointer transition-all flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-lg bg-[#f0f4f9] text-[#0a6ed1] flex items-center justify-center group-hover:bg-[#0a6ed1] group-hover:text-white transition-colors">
+                  <BarChart3 className="w-5 h-5" strokeWidth={1.8} />
+                </div>
+                <span className="px-2 py-0.5 rounded bg-[#f5f6f7] border border-[#d9e1e8] font-mono text-xs font-bold text-[#1d2d3e]">
+                  MC40
+                </span>
+              </div>
+              <h3 className="text-base font-bold text-[#1d2d3e] group-hover:text-[#0a6ed1] transition-colors">
+                Análisis de Inventarios ABC / Pareto
+              </h3>
+              <p className="text-xs text-[#5b738b] mt-1 leading-relaxed">
+                Clasificación dinámica A/B/C por Valor de Utilización, Valorizado de Inventario y Costo Unitario con curva de Pareto interactiva.
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-[#edf2f7] flex items-center justify-between text-xs text-[#5b738b]">
+              <span className="font-mono">Abastecimiento I — TP2</span>
+              <span className="text-[#0a6ed1] font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                Abrir <ChevronRight className="w-3.5 h-3.5" />
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* 5. VL02N Expedición & Muelles */}
         {(activeTab === 'ALL' || activeTab === 'SD') && (
           <div
             onClick={() => setActiveApp('VL01N')}
-            className="group bg-white rounded-xl p-5 border border-slate-200 shadow-xs hover:shadow-md hover:border-blue-400 cursor-pointer transition-all flex flex-col justify-between"
+            className="group bg-white rounded-xl p-5 border border-[#d9e1e8] shadow-xs hover:shadow-md hover:border-[#0a6ed1] cursor-pointer transition-all flex flex-col justify-between"
           >
             <div>
               <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center group-hover:bg-orange-600 group-hover:text-white transition-colors">
+                <div className="w-10 h-10 rounded-lg bg-[#fef3e6] text-[#e9730c] flex items-center justify-center group-hover:bg-[#e9730c] group-hover:text-white transition-colors">
                   <Truck className="w-5 h-5" strokeWidth={1.8} />
                 </div>
-                <span className="px-2 py-0.5 rounded bg-slate-100 font-mono text-xs font-bold text-slate-700 group-hover:bg-orange-100 group-hover:text-orange-800 transition-colors">
-                  VL01N / VL02N
+                <span className="px-2 py-0.5 rounded bg-[#f5f6f7] border border-[#d9e1e8] font-mono text-xs font-bold text-[#1d2d3e]">
+                  VL02N / DOCK
                 </span>
               </div>
-              <h3 className="text-base font-bold text-slate-800 group-hover:text-orange-700 transition-colors">
-                Entregas Salientes & Despacho (Outbound Deliveries)
+              <h3 className="text-base font-bold text-[#1d2d3e] group-hover:text-[#e9730c] transition-colors">
+                Expedición (PGI 601) & Muelles
               </h3>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                Gestión del flujo de expedición: Confirmación de picking por lote y contabilización de salida de mercancías (PGI - Movimiento 601).
+              <p className="text-xs text-[#5b738b] mt-1 leading-relaxed">
+                Picking, checklist de 5 controles de expedición, PGI (601) y calculadora de dimensionamiento de muelles compartidos vs exclusivos.
               </p>
             </div>
-            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-              <span className="font-mono text-orange-700 font-semibold">{pendingDeliveries} Pendientes de PGI</span>
-              <span className="text-orange-700 font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                Abrir App <ChevronRight className="w-3.5 h-3.5" />
+            <div className="mt-4 pt-3 border-t border-[#edf2f7] flex items-center justify-between text-xs text-[#5b738b]">
+              <span className="font-mono text-[#e9730c] font-semibold">{pendingDeliveries} entregas activas</span>
+              <span className="text-[#0a6ed1] font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                Abrir <ChevronRight className="w-3.5 h-3.5" />
               </span>
             </div>
           </div>
         )}
 
-        {/* App 5: EWM */}
-        {(activeTab === 'ALL' || activeTab === 'WM') && (
+        {/* 6. CMI / OTIF Overview Page */}
+        {(activeTab === 'ALL' || activeTab === 'ANALYTICS') && (
           <div
-            onClick={() => setActiveApp('EWM_RACK')}
-            className="group bg-white rounded-xl p-5 border border-slate-200 shadow-xs hover:shadow-md hover:border-blue-400 cursor-pointer transition-all flex flex-col justify-between"
+            onClick={() => setActiveApp('CMI')}
+            className="group bg-white rounded-xl p-5 border border-[#d9e1e8] shadow-xs hover:shadow-md hover:border-[#0a6ed1] cursor-pointer transition-all flex flex-col justify-between"
           >
             <div>
               <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                  <Grid3X3 className="w-5 h-5" strokeWidth={1.8} />
+                <div className="w-10 h-10 rounded-lg bg-[#eaf7ee] text-[#107e3e] flex items-center justify-center group-hover:bg-[#107e3e] group-hover:text-white transition-colors">
+                  <Gauge className="w-5 h-5" strokeWidth={1.8} />
                 </div>
-                <span className="px-2 py-0.5 rounded bg-slate-100 font-mono text-xs font-bold text-slate-700 group-hover:bg-purple-100 group-hover:text-purple-800 transition-colors">
-                  EWM RACKS
+                <span className="px-2 py-0.5 rounded bg-[#f5f6f7] border border-[#d9e1e8] font-mono text-xs font-bold text-[#1d2d3e]">
+                  CMI / OTIF
                 </span>
               </div>
-              <h3 className="text-base font-bold text-slate-800 group-hover:text-purple-700 transition-colors">
-                Visor de Ubicaciones en Almacén (Storage Bins)
+              <h3 className="text-base font-bold text-[#1d2d3e] group-hover:text-[#107e3e] transition-colors">
+                Tablero Analítico CMI & OTIF
               </h3>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                Mapa 2D interactivo de pasillos y estanterías industriales. Supervisión de capacidad máxima de peso en kg y ocupación de posiciones.
+              <p className="text-xs text-[#5b738b] mt-1 leading-relaxed">
+                Indicadores de expedición y devoluciones en tiempo real: Exactitud, Salidas a tiempo, OTIF, Utilización de Muelle y Tasa de Recuperación.
               </p>
             </div>
-            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-              <span className="font-mono">Pasillos A, B y C</span>
-              <span className="text-purple-700 font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                Abrir App <ChevronRight className="w-3.5 h-3.5" />
+            <div className="mt-4 pt-3 border-t border-[#edf2f7] flex items-center justify-between text-xs text-[#5b738b]">
+              <span className="font-mono font-semibold text-[#107e3e]">OTIF: {otifPercent}%</span>
+              <span className="text-[#0a6ed1] font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                Abrir <ChevronRight className="w-3.5 h-3.5" />
               </span>
             </div>
           </div>
         )}
 
-        {/* App 6: CASES */}
+        {/* 7. ME21N Purchase Orders */}
+        {(activeTab === 'ALL' || activeTab === 'MM') && (
+          <div
+            onClick={() => setActiveApp('ME21N')}
+            className="group bg-white rounded-xl p-5 border border-[#d9e1e8] shadow-xs hover:shadow-md hover:border-[#0a6ed1] cursor-pointer transition-all flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-lg bg-[#f0f4f9] text-[#0a6ed1] flex items-center justify-center group-hover:bg-[#0a6ed1] group-hover:text-white transition-colors">
+                  <ShoppingCart className="w-5 h-5" strokeWidth={1.8} />
+                </div>
+                <span className="px-2 py-0.5 rounded bg-[#f5f6f7] border border-[#d9e1e8] font-mono text-xs font-bold text-[#1d2d3e]">
+                  ME21N
+                </span>
+              </div>
+              <h3 className="text-base font-bold text-[#1d2d3e] group-hover:text-[#0a6ed1] transition-colors">
+                Compras & Evaluación Proveedores
+              </h3>
+              <p className="text-xs text-[#5b738b] mt-1 leading-relaxed">
+                Creación y seguimiento de Órdenes de Compra (P2 parcial 72h vs P3 emergencia 30h) con confiabilidad, precio y Lead Time.
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-[#edf2f7] flex items-center justify-between text-xs text-[#5b738b]">
+              <span className="font-mono tabular-nums">{purchaseOrders.length} OC registradas</span>
+              <span className="text-[#0a6ed1] font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                Abrir <ChevronRight className="w-3.5 h-3.5" />
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* 8. EWM Racks */}
+        {(activeTab === 'ALL' || activeTab === 'SD') && (
+          <div
+            onClick={() => setActiveApp('EWM_RACK')}
+            className="group bg-white rounded-xl p-5 border border-[#d9e1e8] shadow-xs hover:shadow-md hover:border-[#0a6ed1] cursor-pointer transition-all flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-lg bg-[#f0f4f9] text-[#0a6ed1] flex items-center justify-center group-hover:bg-[#0a6ed1] group-hover:text-white transition-colors">
+                  <Grid3X3 className="w-5 h-5" strokeWidth={1.8} />
+                </div>
+                <span className="px-2 py-0.5 rounded bg-[#f5f6f7] border border-[#d9e1e8] font-mono text-xs font-bold text-[#1d2d3e]">
+                  EWM BINS
+                </span>
+              </div>
+              <h3 className="text-base font-bold text-[#1d2d3e] group-hover:text-[#0a6ed1] transition-colors">
+                Mapa de Almacén & Ubicaciones 2D
+              </h3>
+              <p className="text-xs text-[#5b738b] mt-1 leading-relaxed">
+                Zonificación ABC por pasillos (A, B, C), control de carga máxima estructural en kg y trazabilidad por lote.
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-[#edf2f7] flex items-center justify-between text-xs text-[#5b738b]">
+              <span className="font-mono">Zonas A / B / C</span>
+              <span className="text-[#0a6ed1] font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                Abrir <ChevronRight className="w-3.5 h-3.5" />
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* 9. UTN Case Studies */}
         {(activeTab === 'ALL' || activeTab === 'CASES') && (
           <div
             onClick={() => setActiveApp('CASES')}
-            className="group bg-gradient-to-br from-amber-50 to-orange-50/50 rounded-xl p-5 border border-amber-200 shadow-xs hover:shadow-md hover:border-amber-400 cursor-pointer transition-all flex flex-col justify-between"
+            className="group bg-[#f0f4f9] rounded-xl p-5 border border-[#b3d4f7] shadow-xs hover:shadow-md hover:border-[#0a6ed1] cursor-pointer transition-all flex flex-col justify-between"
           >
             <div>
               <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-lg bg-amber-500 text-white flex items-center justify-center shadow-xs">
+                <div className="w-10 h-10 rounded-lg bg-[#0a6ed1] text-white flex items-center justify-center shadow-xs">
                   <BookOpen className="w-5 h-5" strokeWidth={2} />
                 </div>
-                <span className="px-2 py-0.5 rounded bg-amber-200 font-mono text-xs font-bold text-amber-900">
-                  TRAINING
+                <span className="px-2 py-0.5 rounded bg-white border border-[#b3d4f7] font-mono text-xs font-bold text-[#0a6ed1]">
+                  UTN CASES
                 </span>
               </div>
-              <h3 className="text-base font-bold text-slate-800 group-hover:text-amber-800 transition-colors">
-                Misiones Prácticas para Entrevistas Laborales
+              <h3 className="text-base font-bold text-[#1d2d3e] group-hover:text-[#0a6ed1] transition-colors">
+                Casos Integradores UTN-to-SAP
               </h3>
-              <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                Escenarios reales de toma de decisiones: recepción de remito discrepante, traspaso a cuarentena y expedición urgente con preguntas clave.
+              <p className="text-xs text-[#5b738b] mt-1 leading-relaxed">
+                Resuelve la Crisis TecnoSur, la Devolución de Motores de Metalúrgica del Sur, MRP y ABC con preguntas reales de entrevistas.
               </p>
             </div>
-            <div className="mt-4 pt-3 border-t border-amber-200/60 flex items-center justify-between text-xs text-amber-900">
-              <span className="font-mono font-semibold">{completedCasesCount} de {caseStudies.length} completadas</span>
-              <span className="text-amber-800 font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+            <div className="mt-4 pt-3 border-t border-[#d1e4f8] flex items-center justify-between text-xs text-[#0a6ed1]">
+              <span className="font-mono font-bold tabular-nums">{completedCasesCount}/{caseStudies.length} resueltos</span>
+              <span className="font-bold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
                 Comenzar <ChevronRight className="w-3.5 h-3.5" />
               </span>
             </div>
