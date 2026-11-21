@@ -1,24 +1,55 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
   :root {
     --sap-brand: #0a6ed1;
     --sap-brand-hover: #0854a0;
-    --sap-shell-bg: #1b2a4a;
-    --sap-shell-text: #ffffff;
+    --sap-brand-soft: #f0f4f9;
+    --sap-brand-border: #c2dcf7;
     --sap-bg: #f5f6f7;
-    --sap-card-bg: #ffffff;
+    --sap-surface: #ffffff;
+    --sap-surface-subtle: #f5f6f7;
     --sap-border: #d9e1e8;
     --sap-border-light: #edf2f7;
     --sap-text: #1d2d3e;
     --sap-text-muted: #5b738b;
     --sap-success: #107e3e;
     --sap-success-bg: #eaf7ee;
-    --sap-warning: #e9730c;
+    --sap-success-border: #bce3c9;
+    --sap-warning: #9a4d06;
+    --sap-warning-accent: #e9730c;
     --sap-warning-bg: #fef3e6;
+    --sap-warning-border: #f5cfa3;
     --sap-error: #bb0000;
     --sap-error-bg: #fde8e8;
-    --sap-tile-hover: #f0f4f9;
+    --sap-error-border: #f5c2c2;
+  }
+
+  .dark {
+    /* SAP Fiori Evening Horizon (WCAG 2.1 AA >= 4.5:1) */
+    --sap-brand: #4db1ff;
+    --sap-brand-hover: #7cc4ff;
+    --sap-brand-soft: #1a2c42;
+    --sap-brand-border: #2a4a70;
+    --sap-bg: #12171c;
+    --sap-surface: #1d232a;
+    --sap-surface-subtle: #161c22;
+    --sap-border: #2e3742;
+    --sap-border-light: #252d36;
+    --sap-text: #eaecee;
+    --sap-text-muted: #a9b4be;
+    --sap-success: #5dc122;
+    --sap-success-bg: #162b1c;
+    --sap-success-border: #285233;
+    --sap-warning: #f5b04d;
+    --sap-warning-accent: #f5b04d;
+    --sap-warning-bg: #2e2212;
+    --sap-warning-border: #593f1a;
+    --sap-error: #ff8cb2;
+    --sap-error-bg: #331921;
+    --sap-error-border: #66293c;
   }
 
   body {
@@ -29,6 +60,7 @@
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
   select {
@@ -40,9 +72,50 @@
     padding-right: 2rem !important;
   }
 
+  .dark select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a9b4be' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--sap-brand);
+    outline-offset: 2px;
+  }
+
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Semantic surface utility classes backed by SAP Horizon tokens */
+.sap-card {
+  background-color: var(--sap-surface);
+  border: 1px solid var(--sap-border);
+  color: var(--sap-text);
+}
+
+.sap-subtle {
+  background-color: var(--sap-surface-subtle);
+  border-color: var(--sap-border);
+}
+
+.sap-input {
+  background-color: var(--sap-surface-subtle);
+  border: 1px solid var(--sap-border);
+  color: var(--sap-text);
+}
+.sap-input:focus {
+  background-color: var(--sap-surface);
+  border-color: var(--sap-brand);
+  outline: none;
 }
 
 ::-webkit-scrollbar {
@@ -50,12 +123,9 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f3f5;
+  background: var(--sap-surface-subtle);
 }
 ::-webkit-scrollbar-thumb {
-  background: #c5ced7;
+  background: var(--sap-border);
   border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #a6b4c3;
 }
