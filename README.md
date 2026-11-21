@@ -133,8 +133,15 @@ npm install
 npm run dev
 ```
 
-Compilación de producción:
+Compilación de producción y suite de tests (Vitest — F.I.R.S.T.):
 
 ```bash
-npm run build
+npm test      # Ejecuta 19 tests unitarios y de integración end-to-end
+npm run build # Compilación TypeScript + bundle con code-splitting por transacción
 ```
+
+### Arquitectura & Ingeniería (SOLID / Big-O / Patrones)
+
+- **Clean Architecture Modular:** Separación estricta entre `src/domain/` (servicios puros, índices $O(1)$ y validadores), `src/infrastructure/` (`IStateRepository` con `LocalStorageRepository` / `InMemoryStateRepository`) y `src/components/` (vistas Fiori desacopladas con `React.lazy`).
+- **Eficiencia Algorítmica (Big-O):** Lookups $O(1)$ vía `Map` para materiales, stock por clave compuesta y almacenes; análisis ABC Pareto en $O(S + M \log M)$ y proyección MRP en $O(W)$.
+- **Patrones de Diseño:** **Strategy** (políticas de loteo MRP y criterios ABC), **Repository** (DIP para persistencia), **Specification** (validaciones defensivas e idempotencia) y **Command/Engine** (transiciones inmutables de inventario).
