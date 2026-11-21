@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useSAP } from '../../context/SAPContext';
+import { calculateLogisticsKPIs } from '../../domain/services/kpiService';
 import { Gauge, CheckCircle2, AlertTriangle, TrendingUp, RotateCcw, Truck } from 'lucide-react';
 
 export const CMIOverviewDashboard: React.FC = () => {
@@ -9,13 +10,14 @@ export const CMIOverviewDashboard: React.FC = () => {
     completeCaseStep('CASE-DEVOLUCIONES', 3);
   }, []);
 
-  const exactitud = (kpiBaseline.errorFreeOrders / kpiBaseline.dispatchedOrders) * 100;
-  const salidasATiempo = (kpiBaseline.onTimeDepartures / kpiBaseline.dispatchedOrders) * 100;
-  const otif = (kpiBaseline.otifDeliveries / kpiBaseline.dispatchedOrders) * 100;
-  const utilizacionMuelle = (kpiBaseline.avgDockMinutesUsed / kpiBaseline.avgDockMinutesAvailable) * 100;
-  const tasaDevolucion = (kpiBaseline.returnedUnits / kpiBaseline.deliveredUnits) * 100;
-  const tasaRecuperacion =
-    kpiBaseline.returnedUnits > 0 ? (kpiBaseline.recoveredUnits / kpiBaseline.returnedUnits) * 100 : 0;
+  const {
+    exactitudPct: exactitud,
+    salidasATiempoPct: salidasATiempo,
+    otifPct: otif,
+    utilizacionMuellePct: utilizacionMuelle,
+    tasaDevolucionPct: tasaDevolucion,
+    tasaRecuperacionPct: tasaRecuperacion
+  } = useMemo(() => calculateLogisticsKPIs(kpiBaseline), [kpiBaseline]);
 
   const cards = [
     {

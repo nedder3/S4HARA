@@ -1,44 +1,32 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useSAP } from '../../context/SAPContext';
 import { LotSizePolicy } from '../../types/sap';
+import { calculateMRPPlan, calculateBOMExplosion } from '../../domain/services/mrpService';
+import { buildStockTotalsByMaterial } from '../../domain/indexes';
 import { Cpu, GitBranch, AlertTriangle, CheckCircle2, Calculator } from 'lucide-react';
 
-interface MRPWeekResult {
-  week: number;
-  grossReq: number;
-  scheduledReceipt: number;
-  startingInv: number;
-  netReq: number;
-  plannedReceipt: number;
-  endingInv: number;
-  plannedRelease: number;
-}
-
 export const MD04MRPMonitor: React.FC = () => {
-  const { materials, stocks, mrpSchedules, completeCaseStep } = useSAP();
+  const { materials, materialIndex, stocks, mrpSchedules, completeCaseStep } = useSAP();
 
   const mrpMaterials = materials.filter(m => mrpSchedules.some(s => s.materialId === m.id));
   const [selectedMatId, setSelectedMatId] = useState<string>(mrpMaterials[0]?.id || 'MAT-A100');
 
-  const selectedMat = materials.find(m => m.id === selectedMatId) || materials[0];
+  const selectedMat = materialIndex.get(selectedMatId) || materials[0];
   const baseSchedule = mrpSchedules.find(s => s.materialId === selectedMatId) || {
     materialId: selectedMatId,
     grossRequirements: [20, 20, 20, 20, 20, 20],
     scheduledReceipts: [0, 0, 0, 0, 0, 0]
   };
 
-  // Live initial unrestricted stock from MMBE
-  const liveInitialStock = useMemo(() => {
-    return stocks
-      .filter(s => s.materialId === selectedMatId && s.plantId === '1010')
-      .reduce((acc, s) => acc + s.unrestricted, 0);
-  }, [stocks, selectedMatId]);
+  // O(S) aggregated stock index
+  const stockTotals = useMemo(() => buildStockTotalsByMaterial(stocks, '1010'), [stocks]);
+  const liveInitialStock = stockTotals.get(selectedMatId)?.unrestricted ?? 0;
 
   const [lotPolicy, setLotPolicy] = useState<LotSizePolicy>(selectedMat.lotSizePolicy);
   const [fixedLotQty, setFixedLotQty] = useState<number>(selectedMat.lotSizeQty);
   const [leadTime, setLeadTime] = useState<number>(selectedMat.leadTimeWeeks);
   const [safetyStock, setSafetyStock] = useState<number>(selectedMat.safetyStock);
-  const [inventoryDelta, setInventoryDelta] = useState<number>(0); // Simulates TP3 Ej. 6b (-13 u. discrepancy)
+  const [inventoryDelta, setInventoryDelta] = useState<number>(0);
   const [grossReqs, setGrossReqs] = useState<number[]>(baseSchedule.grossRequirements);
 
   useEffect(() => {
@@ -59,76 +47,25 @@ export const MD04MRPMonitor: React.FC = () => {
     completeCaseStep('CASE-MRP', 2);
   };
 
-  // Core MRP Calculation Engine (6 weeks)
-  const { rows, urgentPastDueRelease, totalOrdersCount, avgInventory, totalMrpCost } = useMemo(() => {
-    const startStock = Math.max(0, liveInitialStock + inventoryDelta);
-    const weeks: MRPWeekResult[] = [];
-    let currentInv = startStock;
+  // Pure O(W) Domain Service invocation
+  const { rows, urgentPastDueRelease, totalOrdersCount, avgInventory, totalMrpCost } = useMemo(
+    () =>
+      calculateMRPPlan({
+        initialStock: Math.max(0, liveInitialStock + inventoryDelta),
+        safetyStock,
+        leadTimeWeeks: leadTime,
+        lotPolicy,
+        fixedLotQty,
+        grossRequirements: grossReqs,
+        scheduledReceipts: baseSchedule.scheduledReceipts
+      }),
+    [liveInitialStock, inventoryDelta, grossReqs, baseSchedule, safetyStock, lotPolicy, fixedLotQty, leadTime]
+  );
 
-    // First pass: calculate net requirements and planned order receipts
-    for (let i = 0; i < 6; i++) {
-      const gross = grossReqs[i] || 0;
-      const sched = baseSchedule.scheduledReceipts[i] || 0;
-      const availableBeforeReq = currentInv + sched;
-      const projectedWithoutOrder = availableBeforeReq - gross;
-
-      let netReq = 0;
-      let plannedReceipt = 0;
-
-      if (projectedWithoutOrder < safetyStock) {
-        netReq = safetyStock - projectedWithoutOrder;
-        if (lotPolicy === 'L4L') {
-          plannedReceipt = netReq;
-        } else {
-          const lot = Math.max(1, fixedLotQty);
-          plannedReceipt = Math.ceil(netReq / lot) * lot;
-        }
-      }
-
-      const endingInv = availableBeforeReq + plannedReceipt - gross;
-
-      weeks.push({
-        week: i + 1,
-        grossReq: gross,
-        scheduledReceipt: sched,
-        startingInv: currentInv,
-        netReq,
-        plannedReceipt,
-        endingInv,
-        plannedRelease: 0
-      });
-
-      currentInv = endingInv;
-    }
-
-    // Second pass: offset planned receipts by Lead Time (TS) -> planned order releases
-    let pastDue = 0;
-    weeks.forEach((w, idx) => {
-      if (w.plannedReceipt > 0) {
-        const releaseIdx = idx - leadTime;
-        if (releaseIdx >= 0) {
-          weeks[releaseIdx].plannedRelease += w.plannedReceipt;
-        } else {
-          pastDue += w.plannedReceipt;
-        }
-      }
-    });
-
-    // Cost Evaluation (UTN TP3 Ej. 2: $250/lanzamiento, $1.50/u./semana sobre inventario medio)
-    const ordersCount = weeks.filter(w => w.plannedReceipt > 0).length;
-    const sumAvgWeeklyInv = weeks.reduce((acc, w) => acc + (w.startingInv + w.endingInv) / 2, 0);
-    const avgInv = sumAvgWeeklyInv / 6;
-    const orderingCost = ordersCount * 250;
-    const holdingCost = sumAvgWeeklyInv * 1.5;
-
-    return {
-      rows: weeks,
-      urgentPastDueRelease: pastDue,
-      totalOrdersCount: ordersCount,
-      avgInventory: avgInv,
-      totalMrpCost: orderingCost + holdingCost
-    };
-  }, [liveInitialStock, inventoryDelta, grossReqs, baseSchedule, safetyStock, lotPolicy, fixedLotQty, leadTime]);
+  const bomExploded = useMemo(
+    () => calculateBOMExplosion(selectedMat, rows, materialIndex),
+    [selectedMat, rows, materialIndex]
+  );
 
   return (
     <div className="max-w-[1700px] mx-auto px-4 py-6 space-y-5">
@@ -409,33 +346,29 @@ export const MD04MRPMonitor: React.FC = () => {
           <span className="text-xs font-mono text-[#5b738b]">Nivel 0 → Nivel 1</span>
         </div>
 
-        {selectedMat.bomChildren && selectedMat.bomChildren.length > 0 ? (
+        {bomExploded.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {selectedMat.bomChildren.map(child => {
-              const childMat = materials.find(m => m.id === child.materialId);
-              const totalChildDemand = rows.reduce((acc, r) => acc + r.plannedRelease * child.qtyPerParent, 0);
-              return (
-                <div key={child.materialId} className="p-4 rounded-xl bg-[#f5f6f7] border border-[#d9e1e8] flex items-center justify-between gap-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded bg-white border border-[#d9e1e8] font-mono text-xs font-bold text-[#0a6ed1]">
-                        {child.materialId}
-                      </span>
-                      <span className="text-xs font-bold text-[#1d2d3e]">{childMat?.name}</span>
-                    </div>
-                    <p className="text-[11px] text-[#5b738b] mt-1">
-                      Coeficiente técnico: <strong>{child.qtyPerParent} {childMat?.unit}</strong> por cada 1 {selectedMat.id} · Lead Time: {childMat?.leadTimeWeeks} sem.
-                    </p>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <span className="text-[10px] text-[#5b738b] uppercase block">Req. Derivado</span>
-                    <span className="font-mono text-sm font-bold text-[#1d2d3e] tabular-nums">
-                      {totalChildDemand} {childMat?.unit}
+            {bomExploded.map(child => (
+              <div key={child.materialId} className="p-4 rounded-xl bg-[#f5f6f7] border border-[#d9e1e8] flex items-center justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded bg-white border border-[#d9e1e8] font-mono text-xs font-bold text-[#0a6ed1]">
+                      {child.materialId}
                     </span>
+                    <span className="text-xs font-bold text-[#1d2d3e]">{child.materialName}</span>
                   </div>
+                  <p className="text-[11px] text-[#5b738b] mt-1">
+                    Coeficiente técnico: <strong>{child.qtyPerParent} {child.unit}</strong> por cada 1 {selectedMat.id} · Lead Time: {child.leadTimeWeeks} sem.
+                  </p>
                 </div>
-              );
-            })}
+                <div className="text-right shrink-0">
+                  <span className="text-[10px] text-[#5b738b] uppercase block">Req. Derivado</span>
+                  <span className="font-mono text-sm font-bold text-[#1d2d3e] tabular-nums">
+                    {child.totalDerivedDemand} {child.unit}
+                  </span>
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
           <div className="text-xs text-[#5b738b] flex items-center gap-2">

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useSAP } from '../../context/SAPContext';
 import { ExpeditionControls } from '../../types/sap';
+import { calculateDockCapacity } from '../../domain/services/dockService';
 import {
   Truck,
   PackageCheck,
@@ -15,7 +16,7 @@ import {
 export const VL01NOutboundDelivery: React.FC = () => {
   const {
     outboundDeliveries,
-    materials,
+    materialIndex,
     confirmPicking,
     toggleDeliveryControl,
     postGoodsIssue,
@@ -26,25 +27,29 @@ export const VL01NOutboundDelivery: React.FC = () => {
   const [activeSubTab, setActiveSubTab] = useState<'EXPEDITION' | 'DOCKS'>('EXPEDITION');
   const [selectedDeliveryId, setSelectedDeliveryId] = useState<string>(outboundDeliveries[0]?.id || '');
 
-  // EWM Dock Dimensioning Calculator (UTN PL-IV exact formula)
-  const [qd, setQd] = useState<number>(18); // Camiones descarga/día
-  const [td, setTd] = useState<number>(30); // Minutos promedio descarga
-  const [qc, setQc] = useState<number>(22); // Camiones carga/día
-  const [tc, setTc] = useState<number>(40); // Minutos promedio carga
-  const [hours, setHours] = useState<number>(8); // Horas operativas/día
-  const [utilization, setUtilization] = useState<number>(80); // % utilización objetivo
+  // EWM Dock Dimensioning Calculator (delegated to pure O(1) dockService)
+  const [qd, setQd] = useState<number>(18);
+  const [td, setTd] = useState<number>(30);
+  const [qc, setQc] = useState<number>(22);
+  const [tc, setTc] = useState<number>(40);
+  const [hours, setHours] = useState<number>(8);
+  const [utilization, setUtilization] = useState<number>(80);
 
   const activeDelivery = outboundDeliveries.find(d => d.id === selectedDeliveryId) || outboundDeliveries[0];
 
-  const unloadMin = qd * td;
-  const loadMin = qc * tc;
-  const totalMinRequired = unloadMin + loadMin;
-  const effectiveMinPerDock = Math.max(1, hours * 60 * (utilization / 100));
-  const sharedDocksRaw = totalMinRequired / effectiveMinPerDock;
-  const sharedDocks = Math.ceil(sharedDocksRaw);
-  const exclusiveUnloadDocks = Math.ceil(unloadMin / effectiveMinPerDock);
-  const exclusiveLoadDocks = Math.ceil(loadMin / effectiveMinPerDock);
-  const exclusiveTotalDocks = exclusiveUnloadDocks + exclusiveLoadDocks;
+  const {
+    unloadMinutes: unloadMin,
+    loadMinutes: loadMin,
+    effectiveMinutesPerDock: effectiveMinPerDock,
+    sharedDocksTheoretical: sharedDocksRaw,
+    sharedDocksRequired: sharedDocks,
+    exclusiveUnloadDocks,
+    exclusiveLoadDocks,
+    exclusiveTotalDocks
+  } = useMemo(
+    () => calculateDockCapacity({ qd, td, qc, tc, hoursPerDay: hours, utilizationPct: utilization }),
+    [qd, td, qc, tc, hours, utilization]
+  );
 
   const handleOpenDocks = () => {
     setActiveSubTab('DOCKS');
@@ -204,7 +209,7 @@ export const VL01NOutboundDelivery: React.FC = () => {
                       </thead>
                       <tbody className="divide-y divide-[#edf2f7] tabular-nums">
                         {activeDelivery.items.map(it => {
-                          const mat = materials.find(m => m.id === it.materialId);
+                          const mat = materialIndex.get(it.materialId);
                           return (
                             <tr key={it.itemNumber}>
                               <td className="py-3 px-3 font-mono text-[#5b738b]">{it.itemNumber}</td>

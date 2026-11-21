@@ -1,8 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useSAP } from '../../context/SAPContext';
+import { ABCCriterion, calculateABCAnalysis } from '../../domain/services/abcService';
 import { BarChart3, Layers, Info } from 'lucide-react';
-
-type ABCCriterion = 'UTILIZATION' | 'INVENTORY_VALUE' | 'UNIT_COST';
 
 export const MC40ABCAnalysis: React.FC = () => {
   const { materials, stocks, completeCaseStep } = useSAP();
@@ -14,52 +13,11 @@ export const MC40ABCAnalysis: React.FC = () => {
     }
   }, [criterion]);
 
-  const rankedItems = useMemo(() => {
-    const raw = materials.map(m => {
-      const stockQty = stocks
-        .filter(s => s.materialId === m.id)
-        .reduce((acc, s) => acc + s.unrestricted + s.qualityInspection + s.blocked, 0);
-
-      let metricValue = 0;
-      if (criterion === 'UTILIZATION') {
-        metricValue = m.monthlyDemand * m.basePrice;
-      } else if (criterion === 'INVENTORY_VALUE') {
-        metricValue = stockQty * m.basePrice;
-      } else {
-        metricValue = m.basePrice;
-      }
-
-      return {
-        material: m,
-        stockQty,
-        metricValue
-      };
-    });
-
-    raw.sort((a, b) => b.metricValue - a.metricValue);
-    const total = raw.reduce((acc, r) => acc + r.metricValue, 0) || 1;
-
-    let cum = 0;
-    return raw.map((r, idx) => {
-      const relPct = (r.metricValue / total) * 100;
-      cum += relPct;
-      const computedClass = cum <= 80.5 || idx === 0 ? 'A' : cum <= 95.5 ? 'B' : 'C';
-      return {
-        ...r,
-        relPct,
-        cumPct: Math.min(100, cum),
-        computedClass
-      };
-    });
-  }, [materials, stocks, criterion]);
-
-  const classCounts = {
-    A: rankedItems.filter(i => i.computedClass === 'A').length,
-    B: rankedItems.filter(i => i.computedClass === 'B').length,
-    C: rankedItems.filter(i => i.computedClass === 'C').length
-  };
-
-  const maxMetric = rankedItems[0]?.metricValue || 1;
+  // O(S + M log M) pure domain service
+  const { items: rankedItems, classCounts, maxMetricValue: maxMetric } = useMemo(
+    () => calculateABCAnalysis(materials, stocks, criterion),
+    [materials, stocks, criterion]
+  );
 
   return (
     <div className="max-w-[1700px] mx-auto px-4 py-6 space-y-5">

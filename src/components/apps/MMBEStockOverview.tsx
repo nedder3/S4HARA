@@ -14,6 +14,8 @@ export const MMBEStockOverview: React.FC = () => {
   const {
     stocks,
     materials,
+    materialIndex,
+    storageLocationIndex,
     plants,
     storageLocations,
     setActiveApp,
@@ -199,8 +201,8 @@ export const MMBEStockOverview: React.FC = () => {
             <tbody className="divide-y divide-[#edf2f7]">
               {filteredStocks.length > 0 ? (
                 filteredStocks.map(stock => {
-                  const mat = materials.find(m => m.id === stock.materialId);
-                  const loc = storageLocations.find(l => l.plantId === stock.plantId && l.id === stock.storageLocationId);
+                  const mat = materialIndex.get(stock.materialId);
+                  const loc = storageLocationIndex.get(`${stock.plantId}-${stock.storageLocationId}`);
                   const totalUnits = stock.unrestricted + stock.qualityInspection + stock.blocked;
                   const isUnderSafety = mat ? stock.unrestricted < mat.safetyStock && stock.storageLocationId === '0001' : false;
 
