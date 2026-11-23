@@ -1,0 +1,35 @@
+======================================================================
+  S4HARA — Simulador Interactivo SAP S/4HANA Logistics (Windows 10/11)
+======================================================================
+
+NO REQUIERE INSTALAR NODE.JS NI NINGUN PROGRAMA ADICIONAL.
+Funciona 100% offline y local en tu notebook Windows 10/11.
+
+----------------------------------------------------------------------
+  OPCION 1: INSTALAR EN TU PC (RECOMENDADO)
+----------------------------------------------------------------------
+1. Descomprime este archivo ZIP en cualquier carpeta (clic derecho ->
+   "Extraer todo...").
+2. Haz doble clic en:  Instalar_S4HARA.bat
+   (Si Windows SmartScreen muestra un aviso azul "Windows protegio su
+   PC", haz clic en "Mas informacion" -> "Ejecutar de todas formas").
+3. Listo! Se creara el acceso directo "S4HARA - Simulador SAP" en tu
+   Escritorio y Menu Inicio.
+
+----------------------------------------------------------------------
+  OPCION 2: MODO PORTABLE (SIN INSTALAR NADA)
+----------------------------------------------------------------------
+1. Descomprime el ZIP.
+2. Haz doble clic en:  Ejecutar_Sin_Instalar.bat
+3. Se abrira S4HARA automaticamente en una ventana limpia de aplicacion.
+
+----------------------------------------------------------------------
+  PRIMEROS PASOS DENTRO DE S4HARA
+----------------------------------------------------------------------
+- Si es tu primera vez en SAP, haz clic en el boton "Academia" arriba
+  o en la tarjeta "Academia SAP S/4HANA (Desde Cero)".
+- Puedes escribir codigos de transaccion (T-Codes) en la barra superior:
+  ACADEMY, MMBE, MIGO, ME21N, MC40, MD04, VL02N, EWM, MUELLES, CMI.
+- Todos tus avances, inventario y modo oscuro se guardan automaticamente
+  en tu PC.
+======================================================================

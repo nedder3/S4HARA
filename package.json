@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "package:win": "npm run build && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-windows.ps1",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "oxlint",
